@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Upload File</title>
+	<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+	<style>
+		#loader {
+			display: none;
+			margin-top: 20px;
+		}
+	</style>
+</head>
+<body>
+	<div class="container mt-5">
+		<h1 class="text-center">Upload File</h1>
+		<form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data" class="text-center">
+			<div class="form-group">
+				<input type="file" name="file" class="form-control-file" />
+			</div>
+			<button type="submit" class="btn btn-primary">Upload</button>
+		</form>
+		<div id="loader" class="text-center">
+			<div class="spinner-border" role="status">
+				<span class="sr-only">Loading...</span>
+			</div>
+			<p>Processing your file...</p>
+		</div>
+	</div>
+
+	<script>
+		document.getElementById('uploadForm').addEventListener('submit', function(event) {
+			event.preventDefault();
+			document.getElementById('loader').style.display = 'block';
+
+			var formData = new FormData(this);
+
+			fetch('/upload', {
+				method: 'POST',
+				body: formData
+			})
+			.then(response => response.blob())
+			.then(blob => {
+				var url = window.URL.createObjectURL(blob);
+				var a = document.createElement('a');
+				a.style.display = 'none';
+				a.href = url;
+				a.download = 'channels_followers.xlsx';
+				document.body.appendChild(a);
+				a.click();
+				window.URL.revokeObjectURL(url);
+				document.getElementById('loader').style.display = 'none';
+			})
+			.catch(() => {
+				alert('There was an error processing your file.');
+				document.getElementById('loader').style.display = 'none';
+			});
+		});
+	</script>
+</body>
+</html>

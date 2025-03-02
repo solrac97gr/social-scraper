@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/solrac97gr/telegram-followers-checker/app"
 	instagram "github.com/solrac97gr/telegram-followers-checker/extractors/instagram"
 	"github.com/solrac97gr/telegram-followers-checker/extractors/rutube"
@@ -15,6 +16,10 @@ import (
 
 func main() {
 	fiberApp := fiber.New()
+	fiberApp.Use(logger.New())
+
+	// Serve static files from the root directory
+	fiberApp.Static("/", "./public")
 
 	fiberApp.Post("/upload", func(c *fiber.Ctx) error {
 		file, err := c.FormFile("file")
