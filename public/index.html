@@ -154,6 +154,23 @@
 			});
 		}
 
+		function updateLoaderText(estimatedTime) {
+			const loaderText = document.getElementById('loaderText');
+			loaderText.innerText = `Processing your file... ⏳ Estimated time: ${estimatedTime} seconds`;
+		}
+
+		function startCountdown(estimatedTime) {
+			const loaderText = document.getElementById('loaderText');
+			const interval = setInterval(() => {
+				if (estimatedTime > 0) {
+					estimatedTime--;
+					loaderText.innerText = `Processing your file... ⏳ Estimated time: ${estimatedTime} seconds`;
+				} else {
+					clearInterval(interval);
+				}
+			}, 1000);
+		}
+
 		document.getElementById('uploadForm').addEventListener('submit', function(event) {
 			event.preventDefault();
 			document.getElementById('loader').style.display = 'block';
@@ -161,33 +178,49 @@
 
 			var formData = new FormData(this);
 
-			fetch('/upload', {
+			// Call the new endpoint to get the estimated time
+			fetch('/estimate-time', {
 				method: 'POST',
 				body: formData
 			})
 			.then(response => response.json())
 			.then(data => {
-				document.getElementById('loader').style.display = 'none';
-				document.getElementById('resultsContainer').style.display = 'block';
+				updateLoaderText(data.estimatedTime);
+				startCountdown(data.estimatedTime);
 
-				const resultsTableBody = document.getElementById('resultsTableBody');
-				resultsTableBody.innerHTML = '';
+				// Proceed with the file upload
+				fetch('/upload', {
+					method: 'POST',
+					body: formData
+				})
+				.then(response => response.json())
+				.then(data => {
+					document.getElementById('loader').style.display = 'none';
+					document.getElementById('resultsContainer').style.display = 'block';
 
-				// remove the first row (header)
-				data.results.shift();
+					const resultsTableBody = document.getElementById('resultsTableBody');
+					resultsTableBody.innerHTML = '';
 
-				data.results.forEach(result => {
-					const row = document.createElement('tr');
-					row.innerHTML = `
-						<td>${result[0]}</td>
-						<td>${result[1]}</td>
-						<td><a href="${result[2]}" target="_blank">${result[2]}</a></td>
-					`;
-					resultsTableBody.appendChild(row);
+					// remove the first row (header)
+					data.results.shift();
+
+					data.results.forEach(result => {
+						const row = document.createElement('tr');
+						row.innerHTML = `
+							<td>${result[0]}</td>
+							<td>${result[1]}</td>
+							<td><a href="${result[2]}" target="_blank">${result[2]}</a></td>
+						`;
+						resultsTableBody.appendChild(row);
+					});
+				})
+				.catch(() => {
+					alert('There was an error processing your file.');
+					document.getElementById('loader').style.display = 'none';
 				});
 			})
 			.catch(() => {
-				alert('There was an error processing your file.');
+				alert('There was an error estimating the processing time.');
 				document.getElementById('loader').style.display = 'none';
 			});
 		});

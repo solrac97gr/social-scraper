@@ -1,6 +1,7 @@
 package filemanager
 
 import (
+	"fmt"
 	"log"
 	"strings"
 
@@ -11,6 +12,7 @@ import (
 type FileManager interface {
 	ReadLinksFromExcel(filePath string) []string
 	SaveResultsToExcel(data [][]string, outputPath string)
+	EstimateProcessingTime(filePath string) (int, error)
 }
 
 // FileManagerImpl implements the FileManager interface
@@ -111,4 +113,39 @@ func (fm *FileManagerImpl) SaveResultsToExcel(data [][]string, outputPath string
 	if err := f.SaveAs(outputPath); err != nil {
 		log.Fatalf("Failed to save Excel file: %v", err)
 	}
+}
+
+// EstimateProcessingTime estimates the processing time based on the number of links
+func (fm *FileManagerImpl) EstimateProcessingTime(filePath string) (int, error) {
+	f, err := excelize.OpenFile(filePath)
+	if err != nil {
+		return 0, err
+	}
+	defer f.Close()
+
+	// Get all sheet names
+	sheets := f.GetSheetList()
+	if len(sheets) == 0 {
+		return 0, fmt.Errorf("no sheets found in Excel file")
+	}
+
+	// Get all rows in the first sheet
+	rows, err := f.GetRows(sheets[0])
+	if err != nil {
+		return 0, err
+	}
+
+	linkCount := 0
+	for _, row := range rows {
+		for _, cell := range row {
+			if cell != "" && (len(cell) > 4 && cell[:4] == "http") {
+				linkCount++
+			}
+		}
+	}
+
+	// Estimate the processing time (1 second per link)
+	estimatedTime := linkCount
+
+	return estimatedTime, nil
 }
