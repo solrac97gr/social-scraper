@@ -22,6 +22,25 @@ A tool to extract information about Telegram channels from a list of links in an
    - The program will generate an Excel file named `telegram_channels_followers.xlsx` with the extracted information.
    - The output includes channel name, followers count, and the original link.
 
+## Example Result
+
+After running the program, you will get an Excel file with the following format:
+
+| Channel Name     | Followers Count | Original Link             |
+|------------------|----------------:|---------------------------|
+| Golang News      | 12500           | https://t.me/golang_news  |
+| Tech Updates     | 45800           | https://t.me/tech_updates |
+| Programming Tips | 8320            | https://t.me/coding_tips  |
+
+The program provides real-time progress updates in the terminal:
+```
+Processing: https://t.me/golang_news
+Processing: https://t.me/tech_updates
+Processing: https://t.me/coding_tips
+
+Success! Results saved to telegram_channels_followers.xlsx
+```
+
 ## Features
 
 - Automatically scrapes Telegram channel information
