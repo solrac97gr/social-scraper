@@ -45,6 +45,47 @@
 				transform: scale(1);
 			}
 		}
+		/* Add custom styles for the results table */
+		#resultsTable {
+			border-collapse: collapse;
+			width: 100%;
+			margin-top: 20px;
+		}
+
+		#resultsTable th, #resultsTable td {
+			border: 1px solid #ddd;
+			padding: 8px;
+			text-align: center;
+		}
+
+		#resultsTable th {
+			background-color: #4CAF50;
+			color: white;
+			font-weight: bold;
+			animation: fadeIn 1s ease-in-out;
+		}
+
+		#resultsTable tr:nth-child(even) {
+			background-color: #f2f2f2;
+		}
+
+		#resultsTable tr:hover {
+			background-color: #ddd;
+		}
+
+		@keyframes fadeIn {
+			from { opacity: 0; }
+			to { opacity: 1; }
+		}
+
+		@keyframes slideIn {
+			from { transform: translateX(-100%); }
+			to { transform: translateX(0); }
+		}
+
+		#resultsTableBody tr {
+			animation: slideIn 0.5s ease-in-out;
+		}
 	</style>
 </head>
 <body>
