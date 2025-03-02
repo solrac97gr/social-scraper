@@ -171,6 +171,20 @@
 	<!-- Add this section to display the results -->
 	<div class="container mt-5" id="resultsContainer" style="display: none;">
 		<h2 class="text-center" id="resultsTitle">Analysis Results</h2>
+		<div class="dropdown mb-3">
+			<button class="btn btn-secondary dropdown-toggle" type="button" id="platformFilterDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+				Filter by Platform
+			</button>
+			<div class="dropdown-menu" aria-labelledby="platformFilterDropdown">
+				<a class="dropdown-item" href="#" onclick="filterByPlatform('all')">All</a>
+				<a class="dropdown-item" href="#" onclick="filterByPlatform('telegram')">Telegram</a>
+				<a class="dropdown-item" href="#" onclick="filterByPlatform('rutube')">Rutube</a>
+				<a class="dropdown-item" href="#" onclick="filterByPlatform('vk')">VK</a>
+				<a class="dropdown-item" href="#" onclick="filterByPlatform('instagram')">Instagram</a>
+				<a class="dropdown-item" href="#" onclick="filterByPlatform('youtube')">YouTube</a>
+			</div>
+		</div>
+
 		<table class="table table-bordered" id="resultsTable">
 			<thead>
 				<tr>
@@ -256,6 +270,18 @@
 					clearInterval(interval);
 				}
 			}, 1000);
+		}
+
+		function filterByPlatform(platform) {
+			const rows = document.querySelectorAll('#resultsTableBody tr');
+			rows.forEach(row => {
+				const platformCell = row.querySelector('td:nth-child(4) span');
+				if (platform === 'all' || platformCell.classList.contains(`badge-${platform}`)) {
+					row.style.display = '';
+				} else {
+					row.style.display = 'none';
+				}
+			});
 		}
 
 		document.getElementById('uploadForm').addEventListener('submit', function(event) {
