@@ -82,6 +82,24 @@
 		</div>
 	</div>
 
+	<!-- Add this section to display the results -->
+	<div class="container mt-5" id="resultsContainer" style="display: none;">
+		<h2 class="text-center" id="resultsTitle">Analysis Results</h2>
+		<table class="table table-bordered" id="resultsTable">
+			<thead>
+				<tr>
+					<th>Channel Name</th>
+					<th>Followers Count</th>
+					<th>Original Link</th>
+				</tr>
+			</thead>
+			<tbody id="resultsTableBody">
+				<!-- Results will be appended here -->
+			</tbody>
+		</table>
+		<button class="btn btn-success btn-block" id="downloadButton">Download Results ⬇️</button>
+	</div>
+
 	<script>
 		const translations = {
 			en: {
@@ -90,7 +108,10 @@
 				uploadTitle: "Upload File 📂",
 				uploadButton: "Upload ⬆️",
 				loaderText: "Processing your file... ⏳",
-				languageLabel: "Language"
+				languageLabel: "Language",
+				resultsTitle: "Analysis Results",
+				downloadButton: "Download Results ⬇️",
+				headers: ["Channel Name", "Followers Count", "Original Link"]
 			},
 			es: {
 				title: "Extractor Social 🚀",
@@ -98,7 +119,10 @@
 				uploadTitle: "Subir Archivo 📂",
 				uploadButton: "Subir ⬆️",
 				loaderText: "Procesando tu archivo... ⏳",
-				languageLabel: "Idioma"
+				languageLabel: "Idioma",
+				resultsTitle: "Resultados del Análisis",
+				downloadButton: "Descargar Resultados ⬇️",
+				headers: ["Nombre del Canal", "Cantidad de Seguidores", "Enlace Original"]
 			},
 			ru: {
 				title: "Социальный Скрапер 🚀",
@@ -106,7 +130,10 @@
 				uploadTitle: "Загрузить файл 📂",
 				uploadButton: "Загрузить ⬆️",
 				loaderText: "Обработка вашего файла... ⏳",
-				languageLabel: "Язык"
+				languageLabel: "Язык",
+				resultsTitle: "Результаты анализа",
+				downloadButton: "Скачать результаты ⬇️",
+				headers: ["Название канала", "Количество подписчиков", "Оригинальная ссылка"]
 			}
 		};
 
@@ -118,6 +145,13 @@
 			document.getElementById('uploadButton').innerText = elements.uploadButton;
 			document.getElementById('loaderText').innerText = elements.loaderText;
 			document.getElementById('languageLabel').innerText = elements.languageLabel;
+			document.getElementById('resultsTitle').innerText = elements.resultsTitle;
+			document.getElementById('downloadButton').innerText = elements.downloadButton;
+
+			const headers = document.querySelectorAll('#resultsTable thead th');
+			headers.forEach((header, index) => {
+				header.innerText = elements.headers[index];
+			});
 		}
 
 		document.getElementById('uploadForm').addEventListener('submit', function(event) {
@@ -131,22 +165,35 @@
 				method: 'POST',
 				body: formData
 			})
-			.then(response => response.blob())
-			.then(blob => {
-				var url = window.URL.createObjectURL(blob);
-				var a = document.createElement('a');
-				a.style.display = 'none';
-				a.href = url;
-				a.download = 'channels_followers.xlsx';
-				document.body.appendChild(a);
-				a.click();
-				window.URL.revokeObjectURL(url);
+			.then(response => response.json())
+			.then(data => {
 				document.getElementById('loader').style.display = 'none';
+				document.getElementById('resultsContainer').style.display = 'block';
+
+				const resultsTableBody = document.getElementById('resultsTableBody');
+				resultsTableBody.innerHTML = '';
+
+				// remove the first row (header)
+				data.results.shift();
+
+				data.results.forEach(result => {
+					const row = document.createElement('tr');
+					row.innerHTML = `
+						<td>${result[0]}</td>
+						<td>${result[1]}</td>
+						<td><a href="${result[2]}" target="_blank">${result[2]}</a></td>
+					`;
+					resultsTableBody.appendChild(row);
+				});
 			})
 			.catch(() => {
 				alert('There was an error processing your file.');
 				document.getElementById('loader').style.display = 'none';
 			});
+		});
+
+		document.getElementById('downloadButton').addEventListener('click', function() {
+			window.location.href = '/download';
 		});
 	</script>
 	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

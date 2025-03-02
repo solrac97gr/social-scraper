@@ -24,7 +24,7 @@ func NewApp(fm filemanager.FileManager, extractors ...extractor.StatisticExtract
 }
 
 // Run processes the input file and generates the output file
-func (a *App) Run(inputFile string, outputFile string) {
+func (a *App) Run(inputFile string, outputFile string) [][]string {
 	// Read links from input file
 	links := a.fileManager.ReadLinksFromExcel(inputFile)
 
@@ -61,7 +61,7 @@ func (a *App) Run(inputFile string, outputFile string) {
 				}
 			}
 
-			 // Store the result at the correct index
+			// Store the result at the correct index
 			orderedResults[i+1] = []string{info.ChannelName, info.FollowersCount, info.OriginalLink}
 
 			// Avoid hitting rate limits
@@ -76,4 +76,6 @@ func (a *App) Run(inputFile string, outputFile string) {
 	a.fileManager.SaveResultsToExcel(orderedResults, outputFile)
 
 	fmt.Printf("\nSuccess! Results saved to %s\n", outputFile)
+
+	return orderedResults
 }
