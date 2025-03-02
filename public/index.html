@@ -171,6 +171,8 @@
 	<!-- Add this section to display the results -->
 	<div class="container mt-5" id="resultsContainer" style="display: none;">
 		<h2 class="text-center" id="resultsTitle">Analysis Results</h2>
+		<button class="btn btn-danger mb-3" id="clearFiltersButton" onclick="clearFilters()">Clear All Filters</button>
+
 		<div class="input-group mb-3">
 			<input type="number" class="form-control" id="minFollowersInput" placeholder="Min followers" onkeyup="filterByFollowers()">
 			<input type="number" class="form-control" id="maxFollowersInput" placeholder="Max followers" onkeyup="filterByFollowers()">
@@ -357,6 +359,14 @@
 		}
 
 		function filterByFollowers() {
+			applyFilters();
+		}
+
+		function clearFilters() {
+			document.getElementById('minFollowersInput').value = '';
+			document.getElementById('maxFollowersInput').value = '';
+			document.getElementById('nameFilterInput').value = '';
+			document.querySelector('#platformFilterDropdown').innerText = 'Filter by Platform';
 			applyFilters();
 		}
 
