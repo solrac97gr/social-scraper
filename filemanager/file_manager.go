@@ -25,7 +25,7 @@ func NewFileManager() FileManager {
 func (fm *FileManagerImpl) ReadLinksFromExcel(filePath string) []string {
 	// Open Excel file
 	f, err := excelize.OpenFile(filePath)
-	if (err != nil) {
+	if err != nil {
 		log.Fatalf("Failed to open Excel file: %v", err)
 	}
 	defer func() {
@@ -51,7 +51,7 @@ func (fm *FileManagerImpl) ReadLinksFromExcel(filePath string) []string {
 	// Extract links from rows
 	for _, row := range rows {
 		for _, cell := range row {
-			if strings.Contains(cell, "t.me/") || strings.Contains(cell, "telegram.me/") || strings.Contains(cell, "rutube.ru/") || strings.Contains(cell, "vk.com/") {
+			if strings.Contains(cell, "t.me/") || strings.Contains(cell, "telegram.me/") || strings.Contains(cell, "rutube.ru/") || strings.Contains(cell, "vk.com/") || strings.Contains(cell, "instagram.com/") {
 				links = append(links, strings.TrimSpace(cell))
 			}
 		}
