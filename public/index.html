@@ -171,6 +171,15 @@
 	<!-- Add this section to display the results -->
 	<div class="container mt-5" id="resultsContainer" style="display: none;">
 		<h2 class="text-center" id="resultsTitle">Analysis Results</h2>
+		<div class="input-group mb-3">
+			<input type="number" class="form-control" id="minFollowersInput" placeholder="Min followers" onkeyup="filterByFollowers()">
+			<input type="number" class="form-control" id="maxFollowersInput" placeholder="Max followers" onkeyup="filterByFollowers()">
+		</div>
+
+		<div class="input-group mb-3">
+			<input type="text" class="form-control" id="nameFilterInput" placeholder="Search by name" onkeyup="filterByName()">
+		</div>
+
 		<div class="dropdown mb-3">
 			<button class="btn btn-secondary dropdown-toggle" type="button" id="platformFilterDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 				Filter by Platform
@@ -277,6 +286,34 @@
 			rows.forEach(row => {
 				const platformCell = row.querySelector('td:nth-child(4) span');
 				if (platform === 'all' || platformCell.classList.contains(`badge-${platform}`)) {
+					row.style.display = '';
+				} else {
+					row.style.display = 'none';
+				}
+			});
+		}
+
+		function filterByName() {
+			const input = document.getElementById('nameFilterInput');
+			const filter = input.value.toLowerCase();
+			const rows = document.querySelectorAll('#resultsTableBody tr');
+			rows.forEach(row => {
+				const nameCell = row.querySelector('td:nth-child(1)');
+				if (nameCell.innerText.toLowerCase().includes(filter)) {
+					row.style.display = '';
+				} else {
+					row.style.display = 'none';
+				}
+			});
+		}
+
+		function filterByFollowers() {
+			const minFollowers = document.getElementById('minFollowersInput').value;
+			const maxFollowers = document.getElementById('maxFollowersInput').value;
+			const rows = document.querySelectorAll('#resultsTableBody tr');
+			rows.forEach(row => {
+				const followersCount = parseInt(row.querySelector('td:nth-child(2)').innerText);
+				if ((minFollowers === '' || followersCount >= minFollowers) && (maxFollowers === '' || followersCount <= maxFollowers)) {
 					row.style.display = '';
 				} else {
 					row.style.display = 'none';
