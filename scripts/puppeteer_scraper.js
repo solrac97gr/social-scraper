@@ -25,11 +25,10 @@ async function scrapeInstagram(url) {
 
     // Accept cookies if the modal appears
     try {
-        await page.waitForSelector('body > div.x1n2onr6.xzkaem6 > div.x9f619.x1n2onr6.x1ja2u2z > div > div.x1uvtmcs.x4k7w5x.x1h91t0o.x1beo9mf.xaigb6o.x12ejxvf.x3igimt.xarpa2k.xedcshv.x1lytzrv.x1t2pt76.x7ja8zs.x1n2onr6.x1qrby5j.x1jfb8zj > div > div > div > div > div.x7r02ix.xf1ldfh.x131esax.xdajt7p.xxfnqb6.xb88tzc.xw2csxc.x1odjw0f.x5fp0pe.x5yr21d.x19onx9a > div > button._a9--._ap36._a9_0', { timeout: 100 });
+        await page.waitForSelector('body > div.x1n2onr6.xzkaem6 > div.x9f619.x1n2onr6.x1ja2u2z > div > div.x1uvtmcs.x4k7w5x.x1h91t0o.x1beo9mf.xaigb6o.x12ejxvf.x3igimt.xarpa2k.xedcshv.x1lytzrv.x1t2pt76.x7ja8zs.x1n2onr6.x1qrby5j.x1jfb8zj > div > div > div > div > div.x7r02ix.xf1ldfh.x131esax.xdajt7p.xxfnqb6.xb88tzc.xw2csxc.x1odjw0f.x5fp0pe.x5yr21d.x19onx9a > div > button._a9--._ap36._a9_0', { timeout: 5000 });
         const acceptCookiesButton = await page.$('body > div.x1n2onr6.xzkaem6 > div.x9f619.x1n2onr6.x1ja2u2z > div > div.x1uvtmcs.x4k7w5x.x1h91t0o.x1beo9mf.xaigb6o.x12ejxvf.x3igimt.xarpa2k.xedcshv.x1lytzrv.x1t2pt76.x7ja8zs.x1n2onr6.x1qrby5j.x1jfb8zj > div > div > div > div > div.x7r02ix.xf1ldfh.x131esax.xdajt7p.xxfnqb6.xb88tzc.xw2csxc.x1odjw0f.x5fp0pe.x5yr21d.x19onx9a > div > button._a9--._ap36._a9_0');
         if (acceptCookiesButton) {
             await acceptCookiesButton.click();
-            await page.waitForNavigation({ waitUntil: 'networkidle2' });
         }
     } catch (e) {
     }
@@ -37,7 +36,6 @@ async function scrapeInstagram(url) {
     await page.type('input[name="username"]', 'your-username'); // Replace with your Instagram username
     await page.type('input[name="password"]', 'your-password'); // Replace with your Instagram password
     await page.click('button[type="submit"]');
-    await page.waitForNavigation({ waitUntil: 'networkidle2' });
 
     // Navigate to the target Instagram page
     await page.goto(url, { waitUntil: 'networkidle2' });
