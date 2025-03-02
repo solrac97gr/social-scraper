@@ -1,6 +1,6 @@
 # Telegram Followers Checker
 
-A tool to extract information about Telegram channels from a list of links in an Excel file. This program scrapes channel name and followers count from Telegram channels.
+A tool to extract information about Telegram, Rutube, and VK channels from a list of links in an Excel file. This program scrapes channel name and followers count from these channels.
 
 ## Usage
 
@@ -8,10 +8,11 @@ A tool to extract information about Telegram channels from a list of links in an
    ```sh
    go get -u github.com/PuerkitoBio/goquery
    go get -u github.com/xuri/excelize/v2
+   npm install puppeteer
    ```
 
 2. Prepare your Excel file:
-   - Create an Excel file with links to Telegram channels (any format works as long as the links contain `t.me/` or `telegram.me/`).
+   - Create an Excel file with links to Telegram, Rutube, and VK channels (any format works as long as the links contain `t.me/`, `telegram.me/`, `rutube.ru/`, or `vk.com/`).
 
 3. Run the program:
    ```sh
@@ -19,7 +20,7 @@ A tool to extract information about Telegram channels from a list of links in an
    ```
 
 4. Check the output:
-   - The program will generate an Excel file named `telegram_channels_followers.xlsx` with the extracted information.
+   - The program will generate an Excel file named `channels_followers.xlsx` with the extracted information.
    - The output includes channel name, followers count, and the original link.
 
 ## Example Result
@@ -38,22 +39,24 @@ Processing: https://t.me/golang_news
 Processing: https://t.me/tech_updates
 Processing: https://t.me/coding_tips
 
-Success! Results saved to telegram_channels_followers.xlsx
+Success! Results saved to channels_followers.xlsx
 ```
 
 ## Features
 
-- Automatically scrapes Telegram channel information
+- Automatically scrapes Telegram, Rutube, and VK channel information
 - Handles rate limiting by implementing delays between requests
 - Well-formatted Excel output with styled headers
-- Support for multiple Telegram link formats
+- Support for multiple link formats
 
 ## Requirements
 
 - Go 1.13 or higher
+- Node.js
 - Dependencies:
   - github.com/PuerkitoBio/goquery (HTML parsing)
   - github.com/xuri/excelize/v2 (Excel file handling)
+  - puppeteer (Headless browser for VK scraping)
 
 ## License
 
