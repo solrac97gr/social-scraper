@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/solrac97gr/telegram-followers-checker/app"
+	"github.com/solrac97gr/telegram-followers-checker/extractors/rutube"
 	"github.com/solrac97gr/telegram-followers-checker/extractors/telegram"
 	"github.com/solrac97gr/telegram-followers-checker/filemanager"
 )
@@ -16,13 +17,14 @@ func main() {
 	}
 
 	inputFile := os.Args[1]
-	outputFile := "telegram_channels_followers.xlsx"
+	outputFile := "channels_followers.xlsx"
 
 	// Initialize components
 	fm := filemanager.NewFileManager()
 	telegramExtractor := telegram.NewTelegramExtractor()
+	rutubeExtractor := rutube.NewRutubeExtractor()
 
 	// Initialize and run app
-	application := app.NewApp(fm, telegramExtractor)
+	application := app.NewApp(fm, telegramExtractor, rutubeExtractor)
 	application.Run(inputFile, outputFile)
 }

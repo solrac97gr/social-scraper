@@ -40,7 +40,6 @@ func (a *App) Run(inputFile string, outputFile string) {
 		for _, e := range a.extractors {
 			if e.CanHandle(link) {
 				info = e.Extract(link)
-				fmt.Printf("Using %s extractor\n", e.Name())
 				break
 			}
 		}
