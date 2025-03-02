@@ -1,6 +1,6 @@
 # Telegram Followers Checker
 
-A tool to extract information about Telegram, Rutube, and VK channels from a list of links in an Excel file. This program scrapes channel name and followers count from these channels.
+A tool to extract information about Telegram, Rutube, VK, and Instagram channels from a list of links in an Excel file. This program scrapes channel name and followers count from these channels.
 
 ## Usage
 
@@ -12,14 +12,17 @@ A tool to extract information about Telegram, Rutube, and VK channels from a lis
    ```
 
 2. Prepare your Excel file:
-   - Create an Excel file with links to Telegram, Rutube, and VK channels (any format works as long as the links contain `t.me/`, `telegram.me/`, `rutube.ru/`, or `vk.com/`).
+   - Create an Excel file with links to Telegram, Rutube, VK, and Instagram channels (any format works as long as the links contain `t.me/`, `telegram.me/`, `rutube.ru/`, `vk.com/`, or `instagram.com/`).
 
-3. Run the program:
+3. Update the Puppeteer script:
+   - Replace the placeholders for Instagram username and password in `scripts/puppeteer_scraper.js` with your actual Instagram credentials.
+
+4. Run the program:
    ```sh
    go run main.go /path/to/your_excel_file.xlsx
    ```
 
-4. Check the output:
+5. Check the output:
    - The program will generate an Excel file named `channels_followers.xlsx` with the extracted information.
    - The output includes channel name, followers count, and the original link.
 
@@ -44,7 +47,7 @@ Success! Results saved to channels_followers.xlsx
 
 ## Features
 
-- Automatically scrapes Telegram, Rutube, and VK channel information
+- Automatically scrapes Telegram, Rutube, VK, and Instagram channel information
 - Handles rate limiting by implementing delays between requests
 - Well-formatted Excel output with styled headers
 - Support for multiple link formats
@@ -56,7 +59,7 @@ Success! Results saved to channels_followers.xlsx
 - Dependencies:
   - github.com/PuerkitoBio/goquery (HTML parsing)
   - github.com/xuri/excelize/v2 (Excel file handling)
-  - puppeteer (Headless browser for VK scraping)
+  - puppeteer (Headless browser for VK and Instagram scraping)
 
 ## License
 
