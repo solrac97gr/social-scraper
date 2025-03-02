@@ -51,14 +51,14 @@ func (fm *FileManagerImpl) ReadLinksFromExcel(filePath string) []string {
 	// Extract links from rows
 	for _, row := range rows {
 		for _, cell := range row {
-			if strings.Contains(cell, "t.me/") || strings.Contains(cell, "telegram.me/") {
+			if strings.Contains(cell, "t.me/") || strings.Contains(cell, "telegram.me/") || strings.Contains(cell, "rutube.ru/") {
 				links = append(links, strings.TrimSpace(cell))
 			}
 		}
 	}
 
 	if len(links) == 0 {
-		log.Fatal("No Telegram links found in the Excel file")
+		log.Fatal("No valid links found in the Excel file")
 	}
 
 	return links
