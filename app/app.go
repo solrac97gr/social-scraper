@@ -28,16 +28,14 @@ func (a *App) Run(inputFile string, outputFile string) {
 	// Read links from input file
 	links := a.fileManager.ReadLinksFromExcel(inputFile)
 
-	results := make([][]string, 0, len(links)+1)
+	// Create a slice to store results in order
+	orderedResults := make([][]string, len(links)+1)
 	// Add header row
-	results = append(results, []string{"Channel Name", "Followers Count", "Original Link"})
+	orderedResults[0] = []string{"Channel Name", "Followers Count", "Original Link"}
 
 	// Create a WaitGroup to wait for all goroutines to finish
 	var wg sync.WaitGroup
 	wg.Add(len(links))
-
-	// Create a channel to collect the results
-	resultChan := make(chan []string, len(links))
 
 	// Process each link concurrently
 	for i, link := range links {
@@ -63,8 +61,8 @@ func (a *App) Run(inputFile string, outputFile string) {
 				}
 			}
 
-			// Send the result to the channel
-			resultChan <- []string{info.ChannelName, info.FollowersCount, info.OriginalLink}
+			 // Store the result at the correct index
+			orderedResults[i+1] = []string{info.ChannelName, info.FollowersCount, info.OriginalLink}
 
 			// Avoid hitting rate limits
 			time.Sleep(1 * time.Second)
@@ -73,15 +71,9 @@ func (a *App) Run(inputFile string, outputFile string) {
 
 	// Wait for all goroutines to finish
 	wg.Wait()
-	close(resultChan)
-
-	// Collect results from the channel
-	for result := range resultChan {
-		results = append(results, result)
-	}
 
 	// Save results to output file
-	a.fileManager.SaveResultsToExcel(results, outputFile)
+	a.fileManager.SaveResultsToExcel(orderedResults, outputFile)
 
 	fmt.Printf("\nSuccess! Results saved to %s\n", outputFile)
 }
