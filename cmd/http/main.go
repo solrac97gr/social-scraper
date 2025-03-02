@@ -43,22 +43,22 @@ func main() {
 
 		// Initialize and run app
 		application := app.NewApp(fm, telegramExtractor, rutubeExtractor, vkExtractor, instagramExtractor)
-		application.Run(inputFile, outputFile)
-
-		// Download the output file
-		if err := c.Download(outputFile); err != nil {
-			return err
-		}
+		results := application.Run(inputFile, outputFile)
 
 		// Delete the temp files
 		if err := os.Remove(inputFile); err != nil {
 			log.Printf("Failed to delete temp file %s: %v", inputFile, err)
 		}
-		if err := os.Remove(outputFile); err != nil {
-			log.Printf("Failed to delete temp file %s: %v", outputFile, err)
-		}
 
-		return nil
+		return c.JSON(fiber.Map{
+			"results": results,
+		})
+	})
+
+	// Add a new endpoint to serve the results as a downloadable file
+	fiberApp.Get("/download", func(c *fiber.Ctx) error {
+		outputFile := "channels_followers.xlsx"
+		return c.Download(outputFile)
 	})
 
 	log.Fatal(fiberApp.Listen(":3000"))
