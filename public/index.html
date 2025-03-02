@@ -3,36 +3,127 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Upload File</title>
+	<title>Social Scraper</title>
 	<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
 	<style>
+		body {
+			font-family: Arial, sans-serif;
+			background-color: #f8f9fa;
+		}
+		.hero {
+			background: radial-gradient(circle, #007bff, #0056b3);
+			color: white;
+			padding: 50px 0;
+			text-align: center;
+			position: relative;
+		}
+		.hero h1 {
+			font-size: 3rem;
+			margin-bottom: 20px;
+		}
 		#loader {
 			display: none;
 			margin-top: 20px;
 		}
+		#uploadForm {
+			animation: bounceIn 1s;
+		}
+		@keyframes bounceIn {
+			0% {
+				opacity: 0;
+				transform: scale(0.3);
+			}
+			50% {
+				opacity: 1;
+				transform: scale(1.05);
+			}
+			70% {
+				transform: scale(0.9);
+			}
+			100% {
+				transform: scale(1);
+			}
+		}
 	</style>
 </head>
 <body>
+	<div class="hero animate__animated animate__fadeInDown">
+		<div class="dropdown" style="position: absolute; top: 20px; right: 20px;">
+			<button class="btn btn-secondary dropdown-toggle" type="button" id="languageDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+				<span id="languageLabel">Language</span>
+			</button>
+			<div class="dropdown-menu" aria-labelledby="languageDropdown">
+				<a class="dropdown-item" href="#" onclick="changeLanguage('en')">English</a>
+				<a class="dropdown-item" href="#" onclick="changeLanguage('es')">Español</a>
+				<a class="dropdown-item" href="#" onclick="changeLanguage('ru')">Русский</a>
+			</div>
+		</div>
+		<h1 id="title">Social Scraper 🚀</h1>
+		<p id="subtitle">Extract information from your favorite social media channels</p>
+	</div>
 	<div class="container mt-5">
-		<h1 class="text-center">Upload File</h1>
-		<form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data" class="text-center">
-			<div class="form-group">
-				<input type="file" name="file" class="form-control-file" />
+		<div class="card mx-auto animate__animated animate__zoomIn" style="max-width: 500px;">
+			<div class="card-body">
+				<h2 class="text-center" id="uploadTitle">Upload File 📂</h2>
+				<form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
+					<div class="form-group">
+						<input type="file" name="file" class="form-control-file" />
+					</div>
+					<button type="submit" class="btn btn-primary btn-block" id="uploadButton">Upload ⬆️</button>
+				</form>
+				<div id="loader" class="text-center animate__animated animate__fadeIn">
+					<div class="spinner-border" role="status">
+						<span class="sr-only">Loading...</span>
+					</div>
+						<p id="loaderText">Processing your file... ⏳</p>
+				</div>
 			</div>
-			<button type="submit" class="btn btn-primary">Upload</button>
-		</form>
-		<div id="loader" class="text-center">
-			<div class="spinner-border" role="status">
-				<span class="sr-only">Loading...</span>
-			</div>
-			<p>Processing your file...</p>
 		</div>
 	</div>
 
 	<script>
+		const translations = {
+			en: {
+				title: "Social Scraper 🚀",
+				subtitle: "Extract information from your favorite social media channels",
+				uploadTitle: "Upload File 📂",
+				uploadButton: "Upload ⬆️",
+				loaderText: "Processing your file... ⏳",
+				languageLabel: "Language"
+			},
+			es: {
+				title: "Extractor Social 🚀",
+				subtitle: "Extrae información de tus canales de redes sociales favoritos",
+				uploadTitle: "Subir Archivo 📂",
+				uploadButton: "Subir ⬆️",
+				loaderText: "Procesando tu archivo... ⏳",
+				languageLabel: "Idioma"
+			},
+			ru: {
+				title: "Социальный Скрапер 🚀",
+				subtitle: "Извлекайте информацию из ваших любимых социальных сетей",
+				uploadTitle: "Загрузить файл 📂",
+				uploadButton: "Загрузить ⬆️",
+				loaderText: "Обработка вашего файла... ⏳",
+				languageLabel: "Язык"
+			}
+		};
+
+		function changeLanguage(lang) {
+			const elements = translations[lang];
+			document.getElementById('title').innerText = elements.title;
+			document.getElementById('subtitle').innerText = elements.subtitle;
+			document.getElementById('uploadTitle').innerText = elements.uploadTitle;
+			document.getElementById('uploadButton').innerText = elements.uploadButton;
+			document.getElementById('loaderText').innerText = elements.loaderText;
+			document.getElementById('languageLabel').innerText = elements.languageLabel;
+		}
+
 		document.getElementById('uploadForm').addEventListener('submit', function(event) {
 			event.preventDefault();
 			document.getElementById('loader').style.display = 'block';
+			document.getElementById('uploadForm').classList.add('animate__animated', 'animate__bounceOut');
 
 			var formData = new FormData(this);
 
@@ -56,6 +147,14 @@
 				alert('There was an error processing your file.');
 				document.getElementById('loader').style.display = 'none';
 			});
+		});
+	</script>
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.1/umd/popper.min.js"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+	<script>
+		$(document).ready(function() {
+			$('.dropdown-toggle').dropdown();
 		});
 	</script>
 </body>

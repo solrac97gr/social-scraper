@@ -2,6 +2,10 @@
 
 A tool to extract information about Telegram, Rutube, VK, and Instagram channels from a list of links in an Excel file. This program scrapes channel name and followers count from these channels.
 
+<div align="center">
+   <img src="images/Social%20Scraper.jpeg" alt="Social Scraper" width="70%">
+</div>
+
 ## Usage 🚀
 
 1. Install dependencies:
