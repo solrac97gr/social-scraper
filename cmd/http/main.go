@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/solrac97gr/telegram-followers-checker/app"
@@ -39,7 +40,20 @@ func main() {
 		application := app.NewApp(fm, telegramExtractor, rutubeExtractor, vkExtractor, instagramExtractor)
 		application.Run(inputFile, outputFile)
 
-		return c.Download(outputFile)
+		// Download the output file
+		if err := c.Download(outputFile); err != nil {
+			return err
+		}
+
+		// Delete the temp files
+		if err := os.Remove(inputFile); err != nil {
+			log.Printf("Failed to delete temp file %s: %v", inputFile, err)
+		}
+		if err := os.Remove(outputFile); err != nil {
+			log.Printf("Failed to delete temp file %s: %v", outputFile, err)
+		}
+
+		return nil
 	})
 
 	log.Fatal(fiberApp.Listen(":3000"))
