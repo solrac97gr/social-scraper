@@ -221,7 +221,17 @@
 				languageLabel: "Language",
 				resultsTitle: "Analysis Results",
 				downloadButton: "Download Results ⬇️",
-				headers: ["Channel Name", "Followers Count", "Original Link", "Platform"]
+				headers: ["Channel Name", "Followers Count", "Original Link", "Platform"],
+				minFollowersInput: "Min followers",
+				maxFollowersInput: "Max followers",
+				nameFilterInput: "Search by name",
+				platformFilterDropdown: "Filter by Platform",
+				all: "All",
+				telegram: "Telegram",
+				rutube: "Rutube",
+				vk: "VK",
+				instagram: "Instagram",
+				youtube: "YouTube"
 			},
 			es: {
 				title: "Extractor Social 🚀",
@@ -232,7 +242,17 @@
 				languageLabel: "Idioma",
 				resultsTitle: "Resultados del Análisis",
 				downloadButton: "Descargar Resultados ⬇️",
-				headers: ["Nombre del Canal", "Cantidad de Seguidores", "Enlace Original", "Plataforma"]
+				headers: ["Nombre del Canal", "Cantidad de Seguidores", "Enlace Original", "Plataforma"],
+				minFollowersInput: "Mín. seguidores",
+				maxFollowersInput: "Máx. seguidores",
+				nameFilterInput: "Buscar por nombre",
+				platformFilterDropdown: "Filtrar por plataforma",
+				all: "Todos",
+				telegram: "Telegram",
+				rutube: "Rutube",
+				vk: "VK",
+				instagram: "Instagram",
+				youtube: "YouTube"
 			},
 			ru: {
 				title: "Социальный Скрапер 🚀",
@@ -243,7 +263,17 @@
 				languageLabel: "Язык",
 				resultsTitle: "Результаты анализа",
 				downloadButton: "Скачать результаты ⬇️",
-				headers: ["Название канала", "Количество подписчиков", "Оригинальная ссылка", "Платформа"]
+				headers: ["Название канала", "Количество подписчиков", "Оригинальная ссылка", "Платформа"],
+				minFollowersInput: "Мин. подписчиков",
+				maxFollowersInput: "Макс. подписчиков",
+				nameFilterInput: "Поиск по имени",
+				platformFilterDropdown: "Фильтр по платформе",
+				all: "Все",
+				telegram: "Telegram",
+				rutube: "Rutube",
+				vk: "VK",
+				instagram: "Instagram",
+				youtube: "YouTube"
 			}
 		};
 
@@ -262,6 +292,18 @@
 			headers.forEach((header, index) => {
 				header.innerText = elements.headers[index];
 			});
+
+			document.getElementById('minFollowersInput').placeholder = elements.minFollowersInput;
+			document.getElementById('maxFollowersInput').placeholder = elements.maxFollowersInput;
+			document.getElementById('nameFilterInput').placeholder = elements.nameFilterInput;
+			document.getElementById('platformFilterDropdown').innerText = elements.platformFilterDropdown;
+			const platformItems = document.querySelectorAll('#platformFilterDropdown + .dropdown-menu .dropdown-item');
+			platformItems[0].innerText = elements.all;
+			platformItems[1].innerText = elements.telegram;
+			platformItems[2].innerText = elements.rutube;
+			platformItems[3].innerText = elements.vk;
+			platformItems[4].innerText = elements.instagram;
+			platformItems[5].innerText = elements.youtube;
 		}
 
 		function updateLoaderText(estimatedTime) {
