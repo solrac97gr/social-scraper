@@ -31,7 +31,7 @@ func (a *App) Run(inputFile string, outputFile string) [][]string {
 	// Create a slice to store results in order
 	orderedResults := make([][]string, len(links)+1)
 	// Add header row
-	orderedResults[0] = []string{"Channel Name", "Followers Count", "Original Link"}
+	orderedResults[0] = []string{"Channel Name", "Followers Count", "Original Link", "Platform"}
 
 	// Create a WaitGroup to wait for all goroutines to finish
 	var wg sync.WaitGroup
@@ -48,6 +48,7 @@ func (a *App) Run(inputFile string, outputFile string) [][]string {
 			for _, e := range a.extractors {
 				if e.CanHandle(link) {
 					info = e.Extract(link)
+					info.Platform = e.Name()
 					break
 				}
 			}
@@ -58,11 +59,12 @@ func (a *App) Run(inputFile string, outputFile string) [][]string {
 					ChannelName:    "Unknown",
 					FollowersCount: "0",
 					OriginalLink:   link,
+					Platform:       "Unknown",
 				}
 			}
 
 			// Store the result at the correct index
-			orderedResults[i+1] = []string{info.ChannelName, info.FollowersCount, info.OriginalLink}
+			orderedResults[i+1] = []string{info.ChannelName, info.FollowersCount, info.OriginalLink, info.Platform}
 
 			// Avoid hitting rate limits
 			time.Sleep(1 * time.Second)
