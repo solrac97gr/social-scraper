@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"strconv"
 	"sync"
 	"time"
 
@@ -65,13 +66,26 @@ func (a *App) Run(inputFile string, outputFile string) [][]string {
 					OriginalLink:   link,
 					Platform:       "Unknown",
 				}
-				}
+			}
 
-			// Run registration status check concurrently
+			// Define isRegistered channel
 			isRegistered := make(chan bool)
-			go func() {
-				isRegistered <- ruregistration.CheckRegistrationStatus(link)
-			}()
+
+			// Skip registration status check if platform is Instagram
+			if info.Platform == "Instagram" {
+				go func() {
+					isRegistered <- false
+				}()
+			} else {
+				// Run registration status check concurrently if followers count is >= 10000
+				go func() {
+					if followersCount, err := strconv.Atoi(info.FollowersCount); err == nil && followersCount >= 10000 {
+						isRegistered <- ruregistration.CheckRegistrationStatus(link)
+					} else {
+						isRegistered <- false
+					}
+				}()
+			}
 
 			// Collect the result
 			info.IsRegistered = <-isRegistered
