@@ -33,7 +33,7 @@ func (a *App) Run(inputFile string, outputFile string) [][]string {
 	// Create a slice to store results in order
 	orderedResults := make([][]string, 0, len(links)+1)
 	// Add header row
-	orderedResults = append(orderedResults, []string{"Channel Name", "Followers Count", "Original Link", "Platform", "Is Registered"})
+	orderedResults = append(orderedResults, []string{"Channel Name", "Followers Count", "Original Link", "Platform", "Registration Status"})
 
 	// Create a channel to collect results
 	resultsChan := make(chan []string, len(links))
@@ -70,28 +70,41 @@ func (a *App) Run(inputFile string, outputFile string) [][]string {
 
 			// Define isRegistered channel
 			isRegistered := make(chan bool)
+			shouldCheckRegistration := true
 
-			// Skip registration status check if platform is Instagram
+			// Skip registration status check if platform is Instagram or followers count is < 10000
 			if info.Platform == "Instagram" {
 				go func() {
 					isRegistered <- false
 				}()
+				shouldCheckRegistration = false
 			} else {
-				// Run registration status check concurrently if followers count is >= 10000
-				go func() {
-					if followersCount, err := strconv.Atoi(info.FollowersCount); err == nil && followersCount >= 10000 {
+				if followersCount, err := strconv.Atoi(info.FollowersCount); err == nil && followersCount >= 10000 {
+					go func() {
 						isRegistered <- ruregistration.CheckRegistrationStatus(link)
-					} else {
+					}()
+				} else {
+					go func() {
 						isRegistered <- false
-					}
-				}()
+					}()
+					shouldCheckRegistration = false
+				}
 			}
 
 			// Collect the result
 			info.IsRegistered = <-isRegistered
+			if shouldCheckRegistration {
+				if info.IsRegistered {
+					info.RegistrationStatus = "registered"
+				} else {
+					info.RegistrationStatus = "not registered"
+				}
+			} else {
+				info.RegistrationStatus = "not applicable"
+			}
 
 			// Send the result to the channel
-			resultsChan <- []string{info.ChannelName, info.FollowersCount, info.OriginalLink, info.Platform, fmt.Sprintf("%t", info.IsRegistered)}
+			resultsChan <- []string{info.ChannelName, info.FollowersCount, info.OriginalLink, info.Platform, info.RegistrationStatus}
 
 			// Avoid hitting rate limits
 			time.Sleep(1 * time.Second)
