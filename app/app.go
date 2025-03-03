@@ -2,11 +2,13 @@ package app
 
 import (
 	"fmt"
+	"strconv"
 	"sync"
 	"time"
 
 	"github.com/solrac97gr/telegram-followers-checker/extractors/extractor"
 	"github.com/solrac97gr/telegram-followers-checker/filemanager"
+	ruregistration "github.com/solrac97gr/telegram-followers-checker/ru-registration"
 )
 
 // App orchestrates the components of the application
@@ -29,9 +31,12 @@ func (a *App) Run(inputFile string, outputFile string) [][]string {
 	links := a.fileManager.ReadLinksFromExcel(inputFile)
 
 	// Create a slice to store results in order
-	orderedResults := make([][]string, len(links)+1)
+	orderedResults := make([][]string, 0, len(links)+1)
 	// Add header row
-	orderedResults[0] = []string{"Channel Name", "Followers Count", "Original Link", "Platform"}
+	orderedResults = append(orderedResults, []string{"Channel Name", "Followers Count", "Original Link", "Platform", "Registration Status"})
+
+	// Create a channel to collect results
+	resultsChan := make(chan []string, len(links))
 
 	// Create a WaitGroup to wait for all goroutines to finish
 	var wg sync.WaitGroup
@@ -63,8 +68,43 @@ func (a *App) Run(inputFile string, outputFile string) [][]string {
 				}
 			}
 
-			// Store the result at the correct index
-			orderedResults[i+1] = []string{info.ChannelName, info.FollowersCount, info.OriginalLink, info.Platform}
+			// Define isRegistered channel
+			isRegistered := make(chan bool)
+			shouldCheckRegistration := true
+
+			// Skip registration status check if platform is Instagram or followers count is < 10000
+			if info.Platform == "Instagram" {
+				go func() {
+					isRegistered <- false
+				}()
+				shouldCheckRegistration = false
+			} else {
+				if followersCount, err := strconv.Atoi(info.FollowersCount); err == nil && followersCount >= 10000 {
+					go func() {
+						isRegistered <- ruregistration.CheckRegistrationStatus(link)
+					}()
+				} else {
+					go func() {
+						isRegistered <- false
+					}()
+					shouldCheckRegistration = false
+				}
+			}
+
+			// Collect the result
+			info.IsRegistered = <-isRegistered
+			if shouldCheckRegistration {
+				if info.IsRegistered {
+					info.RegistrationStatus = "registered 🟢"
+				} else {
+					info.RegistrationStatus = "not registered 🔴"
+				}
+			} else {
+				info.RegistrationStatus = "not applicable ⚪"
+			}
+
+			// Send the result to the channel
+			resultsChan <- []string{info.ChannelName, info.FollowersCount, info.OriginalLink, info.Platform, info.RegistrationStatus}
 
 			// Avoid hitting rate limits
 			time.Sleep(1 * time.Second)
@@ -73,6 +113,12 @@ func (a *App) Run(inputFile string, outputFile string) [][]string {
 
 	// Wait for all goroutines to finish
 	wg.Wait()
+	close(resultsChan)
+
+	// Collect results from the channel
+	for result := range resultsChan {
+		orderedResults = append(orderedResults, result)
+	}
 
 	// Save results to output file
 	a.fileManager.SaveResultsToExcel(orderedResults, outputFile)

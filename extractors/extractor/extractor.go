@@ -2,10 +2,12 @@ package extractor
 
 // ChannelInfo holds information about a channel
 type ChannelInfo struct {
-	ChannelName    string
-	FollowersCount string
-	OriginalLink   string
-	Platform       string
+	ChannelName        string
+	FollowersCount     string
+	OriginalLink       string
+	Platform           string
+	IsRegistered       bool
+	RegistrationStatus string
 }
 
 // StatisticExtractor defines the interface for extracting statistics from channels

@@ -34,6 +34,6 @@ func EstimateTimeHandler(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{
-		"estimatedTime": estimatedTime,
+		"estimatedTime": (estimatedTime) * 4,
 	})
 }
