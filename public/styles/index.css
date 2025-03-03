@@ -1,0 +1,124 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+}
+.hero {
+    background: radial-gradient(circle, #007bff, #0056b3);
+    color: white;
+    padding: 50px 0;
+    text-align: center;
+    position: relative;
+}
+.hero h1 {
+    font-size: 3rem;
+    margin-bottom: 20px;
+}
+#loader {
+    display: none;
+    margin-top: 20px;
+}
+#uploadForm {
+    animation: bounceIn 1s;
+}
+@keyframes bounceIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.3);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.05);
+    }
+    70% {
+        transform: scale(0.9);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+/* Add custom styles for the results table */
+#resultsTable {
+    border-collapse: collapse;
+    width: 100%;
+    margin-top: 20px;
+}
+
+#resultsTable th, #resultsTable td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+}
+
+#resultsTable th {
+    background-color: #007bff; /* Changed to a blue tone */
+    color: white;
+    font-weight: bold;
+    animation: fadeIn 1s ease-in-out;
+}
+
+#resultsTable tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+#resultsTable tr:hover {
+    background-color: #ddd;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideIn {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(0); }
+}
+
+#resultsTableBody tr {
+    animation: slideIn 0.5s ease-in-out;
+}
+
+/* Add animation for followers count */
+@keyframes countUp {
+    from { content: "0"; }
+    to { content: attr(data-count); }
+}
+
+.count-up {
+    animation: countUp 2s ease-in-out;
+}
+
+#downloadButton {
+    background-color: #007bff; /* Changed to a blue tone */
+    border-color: #007bff; /* Changed to a blue tone */
+}
+
+#downloadButton:hover {
+    background-color: #0056b3; /* Darker blue tone for hover */
+    border-color: #0056b3; /* Darker blue tone for hover */
+}
+
+.badge-telegram {
+    background-color: #0088cc;
+    color: white;
+}
+
+.badge-rutube {
+    background-color: #ff0000;
+    color: white;
+}
+
+.badge-vk {
+    background-color: #4c75a3;
+    color: white;
+}
+
+.badge-instagram {
+    background-color: #e4405f;
+    color: white;
+}
+
+.badge-youtube {
+    background-color: #ff0000;
+    color: white;
+}
