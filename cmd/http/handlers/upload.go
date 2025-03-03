@@ -20,13 +20,21 @@ func UploadHandler(c *fiber.Ctx) error {
 		return err
 	}
 
+	// Ensure the directories exist
+	if err := os.MkdirAll("uploads", os.ModePerm); err != nil {
+		return err
+	}
+	if err := os.MkdirAll("results", os.ModePerm); err != nil {
+		return err
+	}
+
 	uniqueID := uuid.New().String()
-	inputFile := uniqueID + "_uploaded_" + file.Filename
+	inputFile := "uploads/" + uniqueID + "_uploaded_" + file.Filename
 	if err := c.SaveFile(file, inputFile); err != nil {
 		return err
 	}
 
-	outputFile := uniqueID + "_channels_followers.xlsx"
+	outputFile := "results/" + uniqueID + "_channels_followers.xlsx"
 
 	// Initialize components
 	fm := filemanager.NewFileManager()

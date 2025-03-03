@@ -95,12 +95,12 @@ func (a *App) Run(inputFile string, outputFile string) [][]string {
 			info.IsRegistered = <-isRegistered
 			if shouldCheckRegistration {
 				if info.IsRegistered {
-					info.RegistrationStatus = "registered"
+					info.RegistrationStatus = "registered 🟢"
 				} else {
-					info.RegistrationStatus = "not registered"
+					info.RegistrationStatus = "not registered 🔴"
 				}
 			} else {
-				info.RegistrationStatus = "not applicable"
+				info.RegistrationStatus = "not applicable ⚪"
 			}
 
 			// Send the result to the channel
