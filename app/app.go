@@ -7,6 +7,7 @@ import (
 
 	"github.com/solrac97gr/telegram-followers-checker/extractors/extractor"
 	"github.com/solrac97gr/telegram-followers-checker/filemanager"
+	ruregistration "github.com/solrac97gr/telegram-followers-checker/ru-registration"
 )
 
 // App orchestrates the components of the application
@@ -29,9 +30,12 @@ func (a *App) Run(inputFile string, outputFile string) [][]string {
 	links := a.fileManager.ReadLinksFromExcel(inputFile)
 
 	// Create a slice to store results in order
-	orderedResults := make([][]string, len(links)+1)
+	orderedResults := make([][]string, 0, len(links)+1)
 	// Add header row
-	orderedResults[0] = []string{"Channel Name", "Followers Count", "Original Link", "Platform"}
+	orderedResults = append(orderedResults, []string{"Channel Name", "Followers Count", "Original Link", "Platform", "Is Registered"})
+
+	// Create a channel to collect results
+	resultsChan := make(chan []string, len(links))
 
 	// Create a WaitGroup to wait for all goroutines to finish
 	var wg sync.WaitGroup
@@ -61,10 +65,19 @@ func (a *App) Run(inputFile string, outputFile string) [][]string {
 					OriginalLink:   link,
 					Platform:       "Unknown",
 				}
-			}
+				}
 
-			// Store the result at the correct index
-			orderedResults[i+1] = []string{info.ChannelName, info.FollowersCount, info.OriginalLink, info.Platform}
+			// Run registration status check concurrently
+			isRegistered := make(chan bool)
+			go func() {
+				isRegistered <- ruregistration.CheckRegistrationStatus(link)
+			}()
+
+			// Collect the result
+			info.IsRegistered = <-isRegistered
+
+			// Send the result to the channel
+			resultsChan <- []string{info.ChannelName, info.FollowersCount, info.OriginalLink, info.Platform, fmt.Sprintf("%t", info.IsRegistered)}
 
 			// Avoid hitting rate limits
 			time.Sleep(1 * time.Second)
@@ -73,6 +86,12 @@ func (a *App) Run(inputFile string, outputFile string) [][]string {
 
 	// Wait for all goroutines to finish
 	wg.Wait()
+	close(resultsChan)
+
+	// Collect results from the channel
+	for result := range resultsChan {
+		orderedResults = append(orderedResults, result)
+	}
 
 	// Save results to output file
 	a.fileManager.SaveResultsToExcel(orderedResults, outputFile)

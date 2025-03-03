@@ -6,6 +6,7 @@ type ChannelInfo struct {
 	FollowersCount string
 	OriginalLink   string
 	Platform       string
+	IsRegistered   bool
 }
 
 // StatisticExtractor defines the interface for extracting statistics from channels

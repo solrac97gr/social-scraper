@@ -40,11 +40,11 @@ A tool to extract information about Telegram, Rutube, VK, and Instagram channels
 
 After running the program, you will get an Excel file with the following format:
 
-| Channel Name     | Followers Count | Original Link             |
-|------------------|----------------:|---------------------------|
-| Golang News      | 12500           | https://t.me/golang_news  |
-| Tech Updates     | 45800           | https://t.me/tech_updates |
-| Programming Tips | 8320            | https://t.me/coding_tips  |
+| Channel Name     | Followers Count | Original Link             | Platform | Is Registered |
+|------------------|----------------:|---------------------------|----------|---------------|
+| Golang News      | 12500           | https://t.me/golang_news  | Telegram | true          |
+| Tech Updates     | 45800           | https://t.me/tech_updates | Telegram | false         |
+| Programming Tips | 8320            | https://t.me/coding_tips  | Telegram | true          |
 
 The program provides real-time progress updates in the terminal:
 ```
