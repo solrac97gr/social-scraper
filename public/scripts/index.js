@@ -199,6 +199,10 @@ document.getElementById('uploadForm').addEventListener('submit', function(event)
                 `;
                 resultsTableBody.appendChild(row);
             });
+
+            document.getElementById('downloadButton').addEventListener('click', function() {
+                window.location.href = `/download?filename=${data.outputFile}`;
+            });
         })
         .catch(() => {
             alert('There was an error processing your file.');
@@ -211,6 +215,3 @@ document.getElementById('uploadForm').addEventListener('submit', function(event)
     });
 });
 
-document.getElementById('downloadButton').addEventListener('click', function() {
-    window.location.href = '/download';
-});
