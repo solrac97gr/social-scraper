@@ -5,6 +5,6 @@ import (
 )
 
 func DownloadHandler(c *fiber.Ctx) error {
-	outputFile := "channels_followers.xlsx"
+	outputFile := c.Query("filename")
 	return c.Download(outputFile)
 }

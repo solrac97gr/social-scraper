@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 	"github.com/solrac97gr/telegram-followers-checker/app"
 	"github.com/solrac97gr/telegram-followers-checker/extractors/instagram"
 	"github.com/solrac97gr/telegram-followers-checker/extractors/rutube"
@@ -19,12 +20,21 @@ func UploadHandler(c *fiber.Ctx) error {
 		return err
 	}
 
-	inputFile := "uploaded_" + file.Filename
+	// Ensure the directories exist
+	if err := os.MkdirAll("uploads", os.ModePerm); err != nil {
+		return err
+	}
+	if err := os.MkdirAll("results", os.ModePerm); err != nil {
+		return err
+	}
+
+	uniqueID := uuid.New().String()
+	inputFile := "uploads/" + uniqueID + "_uploaded_" + file.Filename
 	if err := c.SaveFile(file, inputFile); err != nil {
 		return err
 	}
 
-	outputFile := "channels_followers.xlsx"
+	outputFile := "results/" + uniqueID + "_channels_followers.xlsx"
 
 	// Initialize components
 	fm := filemanager.NewFileManager()
@@ -43,6 +53,7 @@ func UploadHandler(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{
-		"results": results,
+		"outputFile": outputFile,
+		"results":    results,
 	})
 }

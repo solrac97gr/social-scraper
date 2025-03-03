@@ -14,3 +14,5 @@ cli:
 
 clean:
 	rm -rf bin
+	rm -rf results
+	rm -rf uploads

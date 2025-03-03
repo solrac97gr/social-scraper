@@ -8,7 +8,7 @@ const translations = {
         languageLabel: "Language",
         resultsTitle: "Analysis Results",
         downloadButton: "Download Results ⬇️",
-        headers: ["Channel Name", "Followers Count", "Original Link", "Platform"],
+        headers: ["Channel Name", "Followers Count", "Original Link", "Platform", "Registration Status"],
         minFollowersInput: "Min followers",
         maxFollowersInput: "Max followers",
         nameFilterInput: "Search by name",
@@ -29,7 +29,7 @@ const translations = {
         languageLabel: "Idioma",
         resultsTitle: "Resultados del Análisis",
         downloadButton: "Descargar Resultados ⬇️",
-        headers: ["Nombre del Canal", "Cantidad de Seguidores", "Enlace Original", "Plataforma"],
+        headers: ["Nombre del Canal", "Cantidad de Seguidores", "Enlace Original", "Plataforma", "Estado de Registro"],
         minFollowersInput: "Mín. seguidores",
         maxFollowersInput: "Máx. seguidores",
         nameFilterInput: "Buscar por nombre",
@@ -50,7 +50,7 @@ const translations = {
         languageLabel: "Язык",
         resultsTitle: "Результаты анализа",
         downloadButton: "Скачать результаты ⬇️",
-        headers: ["Название канала", "Количество подписчиков", "Оригинальная ссылка", "Платформа"],
+        headers: ["Название канала", "Количество подписчиков", "Оригинальная ссылка", "Платформа", "Статус регистрации"],
         minFollowersInput: "Мин. подписчиков",
         maxFollowersInput: "Макс. подписчиков",
         nameFilterInput: "Поиск по имени",
@@ -195,8 +195,13 @@ document.getElementById('uploadForm').addEventListener('submit', function(event)
                     <td class="count-up" data-count="${result[1]}">${result[1]}</td>
                     <td><a href="${result[2]}" target="_blank">${result[2]}</a></td>
                     <td><span class="badge badge-${result[3].toLowerCase()}">${result[3]}</span></td>
+                    <td>${result[4]}</td
                 `;
                 resultsTableBody.appendChild(row);
+            });
+
+            document.getElementById('downloadButton').addEventListener('click', function() {
+                window.location.href = `/download?filename=${data.outputFile}`;
             });
         })
         .catch(() => {
@@ -210,6 +215,3 @@ document.getElementById('uploadForm').addEventListener('submit', function(event)
     });
 });
 
-document.getElementById('downloadButton').addEventListener('click', function() {
-    window.location.href = '/download';
-});
