@@ -2,19 +2,23 @@ package ruregistration
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"os/exec"
+	"sync/atomic"
 )
 
+var pendingChecks int32
+
 // CheckRegistrationStatus checks if the given link is registered on the specified website
-func CheckRegistrationStatus(link string) bool {
-	fmt.Println("Checking registration status for", link)
-	defer fmt.Println("Finished checking registration status for", link)
+func CheckRegistrationStatus(link string, semaphore chan struct{}) bool {
+	atomic.AddInt32(&pendingChecks, 1)
+	log.Printf("Checking registration status for: %s (Pending checks: %d)", link, atomic.LoadInt32(&pendingChecks))
 	cmd := exec.Command("node", "scripts/ru-registration.js", link)
 	output, err := cmd.Output()
 	if err != nil {
 		log.Printf("Error executing Puppeteer script: %v", err)
+		atomic.AddInt32(&pendingChecks, -1)
+		<-semaphore // Release semaphore
 		return false
 	}
 
@@ -22,9 +26,16 @@ func CheckRegistrationStatus(link string) bool {
 		IsRegistered bool `json:"isRegistered"`
 	}
 	if err := json.Unmarshal(output, &result); err != nil {
-		log.Printf("Error parsing JSON output: %v", err)
+		log.Printf("Error parsing JSON (%s) output: %v", link, output)
+		atomic.AddInt32(&pendingChecks, -1)
+		<-semaphore // Release semaphore
 		return false
 	}
+	defer func() {
+		atomic.AddInt32(&pendingChecks, -1)
+		<-semaphore // Release semaphore
+		log.Printf("Finished checking registration status for: %s (Pending checks: %d) %v", link, atomic.LoadInt32(&pendingChecks), result)
+	}()
 
 	return result.IsRegistered
 }
