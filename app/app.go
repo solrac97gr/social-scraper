@@ -40,67 +40,60 @@ func (a *App) Run(inputFile string, outputFile string) [][]string {
 
 	// Create a WaitGroup to wait for all goroutines to finish
 	var wg sync.WaitGroup
-	wg.Add(len(links))
+
+	// Create a semaphore to limit concurrent registration checks
+	semaphore := make(chan struct{}, 10)
 
 	// Process each link concurrently
 	for i, link := range links {
+		// Find appropriate extractor for this link
+		var info extractor.ChannelInfo
+		for _, e := range a.extractors {
+			if e.CanHandle(link) {
+				info = e.Extract(link)
+				info.Platform = e.Name()
+				break
+			}
+		}
+
+		// If no extractor found or extraction failed, use defaults
+		if info.ChannelName == "" {
+			info = extractor.ChannelInfo{
+				ChannelName:    "Unknown",
+				FollowersCount: "0",
+				OriginalLink:   link,
+				Platform:       "Unknown",
+			}
+		}
+
+		// Skip registration status check if platform is Instagram or followers count is < 10000
+		followersCount, err := strconv.Atoi(info.FollowersCount)
+		if info.Platform == "Instagram" || (err == nil && followersCount < 10000) {
+			info.RegistrationStatus = "not applicable ⚪"
+			resultsChan <- []string{info.ChannelName, info.FollowersCount, info.OriginalLink, info.Platform, info.RegistrationStatus}
+			continue
+		}
+
+		// Add to WaitGroup only for links that will be processed
+		wg.Add(1)
 		go func(i int, link string) {
 			defer wg.Done()
-			fmt.Printf("Processing: %s\n", link)
-
-			// Find appropriate extractor for this link
-			var info extractor.ChannelInfo
-			for _, e := range a.extractors {
-				if e.CanHandle(link) {
-					info = e.Extract(link)
-					info.Platform = e.Name()
-					break
-				}
-			}
-
-			// If no extractor found or extraction failed, use defaults
-			if info.ChannelName == "" {
-				info = extractor.ChannelInfo{
-					ChannelName:    "Unknown",
-					FollowersCount: "0",
-					OriginalLink:   link,
-					Platform:       "Unknown",
-				}
-			}
 
 			// Define isRegistered channel
 			isRegistered := make(chan bool)
-			shouldCheckRegistration := true
 
-			// Skip registration status check if platform is Instagram or followers count is < 10000
-			if info.Platform == "Instagram" {
-				go func() {
-					isRegistered <- false
-				}()
-				shouldCheckRegistration = false
-			} else {
-				if followersCount, err := strconv.Atoi(info.FollowersCount); err == nil && followersCount >= 10000 {
-					go func() {
-						isRegistered <- ruregistration.CheckRegistrationStatus(link)
-					}()
-				} else {
-					go func() {
-						isRegistered <- false
-					}()
-					shouldCheckRegistration = false
-				}
-			}
+			go func() {
+				semaphore <- struct{}{} // Acquire semaphore
+				isRegistered <- ruregistration.CheckRegistrationStatus(link, semaphore)
+				close(isRegistered)
+			}()
 
 			// Collect the result
 			info.IsRegistered = <-isRegistered
-			if shouldCheckRegistration {
-				if info.IsRegistered {
-					info.RegistrationStatus = "registered 🟢"
-				} else {
-					info.RegistrationStatus = "not registered 🔴"
-				}
+			if info.IsRegistered {
+				info.RegistrationStatus = "registered 🟢"
 			} else {
-				info.RegistrationStatus = "not applicable ⚪"
+				info.RegistrationStatus = "not registered 🔴"
 			}
 
 			// Send the result to the channel

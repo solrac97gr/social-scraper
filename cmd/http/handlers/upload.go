@@ -52,6 +52,8 @@ func UploadHandler(c *fiber.Ctx) error {
 		log.Printf("Failed to delete temp file %s: %v", inputFile, err)
 	}
 
+	log.Printf("Processing completed for file: %s", inputFile)
+
 	return c.JSON(fiber.Map{
 		"outputFile": outputFile,
 		"results":    results,
