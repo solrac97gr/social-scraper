@@ -35,8 +35,11 @@ func (a *App) Run(inputFile string, outputFile string) [][]string {
 	// Add header row
 	orderedResults = append(orderedResults, []string{"Channel Name", "Followers Count", "Original Link", "Platform", "Registration Status"})
 
-	// Create a channel to collect results
-	resultsChan := make(chan []string, len(links))
+	// Create a slice to store results at the correct index
+	resultsList := make([][]string, len(links))
+
+	// Create a mutex to protect the resultsList during concurrent writes
+	var mutex sync.Mutex
 
 	// Create a WaitGroup to wait for all goroutines to finish
 	var wg sync.WaitGroup
@@ -70,13 +73,14 @@ func (a *App) Run(inputFile string, outputFile string) [][]string {
 		followersCount, err := strconv.Atoi(info.FollowersCount)
 		if info.Platform == "Instagram" || (err == nil && followersCount < 10000) {
 			info.RegistrationStatus = "not applicable ⚪"
-			resultsChan <- []string{info.ChannelName, info.FollowersCount, info.OriginalLink, info.Platform, info.RegistrationStatus}
+			// Store result directly at the correct position
+			resultsList[i] = []string{info.ChannelName, info.FollowersCount, info.OriginalLink, info.Platform, info.RegistrationStatus}
 			continue
 		}
 
 		// Add to WaitGroup only for links that will be processed
 		wg.Add(1)
-		go func(i int, link string) {
+		go func(idx int, currentInfo extractor.ChannelInfo, linkUrl string) {
 			defer wg.Done()
 
 			// Define isRegistered channel
@@ -84,34 +88,33 @@ func (a *App) Run(inputFile string, outputFile string) [][]string {
 
 			go func() {
 				semaphore <- struct{}{} // Acquire semaphore
-				isRegistered <- ruregistration.CheckRegistrationStatus(link, semaphore)
+				isRegistered <- ruregistration.CheckRegistrationStatus(linkUrl, semaphore)
 				close(isRegistered)
 			}()
 
 			// Collect the result
-			info.IsRegistered = <-isRegistered
-			if info.IsRegistered {
-				info.RegistrationStatus = "registered 🟢"
+			currentInfo.IsRegistered = <-isRegistered
+			if currentInfo.IsRegistered {
+				currentInfo.RegistrationStatus = "registered 🟢"
 			} else {
-				info.RegistrationStatus = "not registered 🔴"
+				currentInfo.RegistrationStatus = "not registered 🔴"
 			}
 
-			// Send the result to the channel
-			resultsChan <- []string{info.ChannelName, info.FollowersCount, info.OriginalLink, info.Platform, info.RegistrationStatus}
+			// Store result at the correct position in the resultsList
+			mutex.Lock()
+			resultsList[idx] = []string{currentInfo.ChannelName, currentInfo.FollowersCount, currentInfo.OriginalLink, currentInfo.Platform, currentInfo.RegistrationStatus}
+			mutex.Unlock()
 
 			// Avoid hitting rate limits
 			time.Sleep(1 * time.Second)
-		}(i, link)
+		}(i, info, link)
 	}
 
 	// Wait for all goroutines to finish
 	wg.Wait()
-	close(resultsChan)
 
-	// Collect results from the channel
-	for result := range resultsChan {
-		orderedResults = append(orderedResults, result)
-	}
+	// Append all results in order
+	orderedResults = append(orderedResults, resultsList...)
 
 	// Save results to output file
 	a.fileManager.SaveResultsToExcel(orderedResults, outputFile)
