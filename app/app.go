@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"sync"
@@ -8,20 +9,29 @@ import (
 
 	"github.com/solrac97gr/telegram-followers-checker/extractors/extractor"
 	"github.com/solrac97gr/telegram-followers-checker/filemanager"
-	ruregistration "github.com/solrac97gr/telegram-followers-checker/ru-registration"
+	ruregistration "github.com/solrac97gr/telegram-followers-checker/integrations/ru-registration"
+	"github.com/solrac97gr/telegram-followers-checker/integrations/tgstats"
+	"github.com/solrac97gr/telegram-followers-checker/integrations/tgstats/config"
+	"github.com/solrac97gr/telegram-followers-checker/integrations/tgstats/repository"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 // App orchestrates the components of the application
 type App struct {
 	fileManager filemanager.FileManager
 	extractors  []extractor.StatisticExtractor
+	repo        *repository.MongoRepository
+	config      *config.TGStatsConfig
 }
 
 // NewApp creates a new App instance
-func NewApp(fm filemanager.FileManager, extractors ...extractor.StatisticExtractor) *App {
+func NewApp(fm filemanager.FileManager, repo *repository.MongoRepository, config *config.TGStatsConfig, extractors ...extractor.StatisticExtractor) *App {
 	return &App{
 		fileManager: fm,
 		extractors:  extractors,
+		repo:        repo,
+		config:      config,
 	}
 }
 
@@ -51,11 +61,20 @@ func (a *App) Run(inputFile string, outputFile string) [][]string {
 	for i, link := range links {
 		// Find appropriate extractor for this link
 		var info extractor.ChannelInfo
-		for _, e := range a.extractors {
-			if e.CanHandle(link) {
-				info = e.Extract(link)
-				info.Platform = e.Name()
-				break
+		// Check cache before performing extraction
+		cachedInfo, err := a.repo.GetChannelInfo(link)
+		if err == nil && cachedInfo.ExpirationTime.After(time.Now()) {
+			info = *cachedInfo
+		} else {
+			// Perform extraction if not in cache or expired
+			for _, e := range a.extractors {
+				if e.CanHandle(link) {
+					info = e.Extract(link)
+					info.Platform = e.Name()
+					info.ExpirationTime = time.Now().Add(72 * time.Hour)
+					a.repo.SaveChannelInfo(&info)
+					break
+				}
 			}
 		}
 
@@ -71,10 +90,10 @@ func (a *App) Run(inputFile string, outputFile string) [][]string {
 
 		// Skip registration status check if platform is Instagram or followers count is < 10000
 		followersCount, err := strconv.Atoi(info.FollowersCount)
-		if info.Platform == "Instagram" || (err == nil && followersCount < 10000) {
+		if info.Platform == "instagram" || (err == nil && followersCount < 10000) {
 			info.RegistrationStatus = "not applicable ⚪"
 			// Store result directly at the correct position
-			resultsList[i] = []string{info.ChannelName, info.FollowersCount, info.OriginalLink, info.Platform, info.RegistrationStatus}
+			resultsList[i] = []string{info.ChannelName, info.FollowersCount, info.OriginalLink, info.Platform, info.RegistrationStatus, fmt.Sprintf("%.2f", info.AvgPostReach), fmt.Sprintf("%.2f", info.ERPercent)}
 			continue
 		}
 
@@ -100,9 +119,18 @@ func (a *App) Run(inputFile string, outputFile string) [][]string {
 				currentInfo.RegistrationStatus = "not registered 🔴"
 			}
 
+			// Get TGStats data if the platform is Telegram
+			if currentInfo.Platform == "telegram" {
+				tgStatsResult, err := tgstats.GetTGStats(linkUrl, a.repo, a.config)
+				if err == nil {
+					currentInfo.AvgPostReach = tgStatsResult.AvgPostReach
+					currentInfo.ERPercent = tgStatsResult.ERPercent
+				}
+			}
+
 			// Store result at the correct position in the resultsList
 			mutex.Lock()
-			resultsList[idx] = []string{currentInfo.ChannelName, currentInfo.FollowersCount, currentInfo.OriginalLink, currentInfo.Platform, currentInfo.RegistrationStatus}
+			resultsList[idx] = []string{currentInfo.ChannelName, currentInfo.FollowersCount, currentInfo.OriginalLink, currentInfo.Platform, currentInfo.RegistrationStatus, fmt.Sprintf("%.2f", currentInfo.AvgPostReach), fmt.Sprintf("%.2f", currentInfo.ERPercent)}
 			mutex.Unlock()
 
 			// Avoid hitting rate limits
@@ -122,4 +150,18 @@ func (a *App) Run(inputFile string, outputFile string) [][]string {
 	fmt.Printf("\nSuccess! Results saved to %s\n", outputFile)
 
 	return orderedResults
+}
+
+func InitMongoClient(uri string) (*mongo.Client, error) {
+	clientOptions := options.Client().ApplyURI(uri)
+	client, err := mongo.Connect(clientOptions)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := client.Ping(context.TODO(), nil); err != nil {
+		return nil, err
+	}
+
+	return client, nil
 }

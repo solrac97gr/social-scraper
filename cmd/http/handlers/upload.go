@@ -12,50 +12,54 @@ import (
 	"github.com/solrac97gr/telegram-followers-checker/extractors/telegram"
 	"github.com/solrac97gr/telegram-followers-checker/extractors/vk"
 	"github.com/solrac97gr/telegram-followers-checker/filemanager"
+	"github.com/solrac97gr/telegram-followers-checker/integrations/tgstats/config"
+	"github.com/solrac97gr/telegram-followers-checker/integrations/tgstats/repository"
 )
 
-func UploadHandler(c *fiber.Ctx) error {
-	file, err := c.FormFile("file")
-	if err != nil {
-		return err
+func UploadHandler(repo *repository.MongoRepository, config *config.TGStatsConfig) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		file, err := c.FormFile("file")
+		if err != nil {
+			return err
+		}
+
+		// Ensure the directories exist
+		if err := os.MkdirAll("uploads", os.ModePerm); err != nil {
+			return err
+		}
+		if err := os.MkdirAll("results", os.ModePerm); err != nil {
+			return err
+		}
+
+		uniqueID := uuid.New().String()
+		inputFile := "uploads/" + uniqueID + "_uploaded_" + file.Filename
+		if err := c.SaveFile(file, inputFile); err != nil {
+			return err
+		}
+
+		outputFile := "results/" + uniqueID + "_channels_followers.xlsx"
+
+		// Initialize components
+		fm := filemanager.NewFileManager()
+		telegramExtractor := telegram.NewTelegramExtractor()
+		rutubeExtractor := rutube.NewRutubeExtractor()
+		vkExtractor := vk.NewVKExtractor()
+		instagramExtractor := instagram.NewInstagramExtractor()
+
+		// Initialize and run app
+		application := app.NewApp(fm, repo, config, telegramExtractor, rutubeExtractor, vkExtractor, instagramExtractor)
+		results := application.Run(inputFile, outputFile)
+
+		// Delete the temp files
+		if err := os.Remove(inputFile); err != nil {
+			log.Printf("Failed to delete temp file %s: %v", inputFile, err)
+		}
+
+		log.Printf("Processing completed for file: %s", inputFile)
+
+		return c.JSON(fiber.Map{
+			"outputFile": outputFile,
+			"results":    results,
+		})
 	}
-
-	// Ensure the directories exist
-	if err := os.MkdirAll("uploads", os.ModePerm); err != nil {
-		return err
-	}
-	if err := os.MkdirAll("results", os.ModePerm); err != nil {
-		return err
-	}
-
-	uniqueID := uuid.New().String()
-	inputFile := "uploads/" + uniqueID + "_uploaded_" + file.Filename
-	if err := c.SaveFile(file, inputFile); err != nil {
-		return err
-	}
-
-	outputFile := "results/" + uniqueID + "_channels_followers.xlsx"
-
-	// Initialize components
-	fm := filemanager.NewFileManager()
-	telegramExtractor := telegram.NewTelegramExtractor()
-	rutubeExtractor := rutube.NewRutubeExtractor()
-	vkExtractor := vk.NewVKExtractor()
-	instagramExtractor := instagram.NewInstagramExtractor()
-
-	// Initialize and run app
-	application := app.NewApp(fm, telegramExtractor, rutubeExtractor, vkExtractor, instagramExtractor)
-	results := application.Run(inputFile, outputFile)
-
-	// Delete the temp files
-	if err := os.Remove(inputFile); err != nil {
-		log.Printf("Failed to delete temp file %s: %v", inputFile, err)
-	}
-
-	log.Printf("Processing completed for file: %s", inputFile)
-
-	return c.JSON(fiber.Map{
-		"outputFile": outputFile,
-		"results":    results,
-	})
 }

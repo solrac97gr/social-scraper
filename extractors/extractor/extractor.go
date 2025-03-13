@@ -1,4 +1,7 @@
+// Description: This package defines the interface for extracting statistics from channels using scrapers.
 package extractor
+
+import "time"
 
 // ChannelInfo holds information about a channel
 type ChannelInfo struct {
@@ -8,6 +11,9 @@ type ChannelInfo struct {
 	Platform           string
 	IsRegistered       bool
 	RegistrationStatus string
+	AvgPostReach       float32
+	ERPercent          float32
+	ExpirationTime     time.Time `bson:"expiration_time"`
 }
 
 // StatisticExtractor defines the interface for extracting statistics from channels
