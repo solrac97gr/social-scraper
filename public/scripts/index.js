@@ -195,7 +195,9 @@ document.getElementById('uploadForm').addEventListener('submit', function(event)
                     <td class="count-up" data-count="${result[1]}">${result[1]}</td>
                     <td><a href="${result[2]}" target="_blank">${result[2]}</a></td>
                     <td><span class="badge badge-${result[3].toLowerCase()}">${result[3]}</span></td>
-                    <td>${result[4]}</td
+                    <td>${result[4]}</td>
+					<td>${result[5]}</td>
+					<td>${result[6]}</td>
                 `;
                 resultsTableBody.appendChild(row);
             });
