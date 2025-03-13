@@ -9,6 +9,9 @@ build:
 run:
 	go run cmd/http/main.go
 
+run-mock:
+	go run mocks/tgstats.go
+
 cli:
 	go run cmd/cli/main.go
 

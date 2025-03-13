@@ -54,7 +54,7 @@ func GetTGStats(channel string, repo *repository.MongoRepository, config *config
 	log.Printf("Cache miss or expired data for channel: %s", channel)
 
 	// Make API request
-	url := fmt.Sprintf("https://api.tgstat.ru/channels/stat?token=%s&channelId=%s", config.Token, channel)
+	url := fmt.Sprintf("%s?token=%s&channelId=%s", config.URL, config.Token, channel)
 	log.Printf("Making API request to URL: %s", url)
 	resp, err := http.Get(url)
 	if err != nil {
