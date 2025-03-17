@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 
+	"math/rand"
+
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -17,8 +19,8 @@ func main() {
 		return c.JSON(fiber.Map{
 			"status": "ok",
 			"response": fiber.Map{
-				"avg_post_reach": 100,
-				"er_percent":     100,
+				"avg_post_reach": rand.Intn(100),
+				"er_percent":     rand.Intn(100),
 			},
 		})
 	})
