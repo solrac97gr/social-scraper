@@ -115,6 +115,15 @@ func (fm *FileManagerImpl) SaveResultsToExcel(data [][]string, outputPath string
 	}
 }
 
+var (
+	estimationPerLink = map[string]int{
+		"vk": 26, // seconds
+		"tg": 1,  // seconds
+		"ig": 1,  // seconds
+		"rt": 1,  // seconds
+	}
+)
+
 // EstimateProcessingTime estimates the processing time based on the number of links
 func (fm *FileManagerImpl) EstimateProcessingTime(filePath string) (int, error) {
 	f, err := excelize.OpenFile(filePath)
@@ -139,7 +148,17 @@ func (fm *FileManagerImpl) EstimateProcessingTime(filePath string) (int, error) 
 	for _, row := range rows {
 		for _, cell := range row {
 			if cell != "" && (len(cell) > 4 && cell[:4] == "http") {
-				linkCount++
+				if strings.Contains(cell, "vk.com/") {
+					linkCount += estimationPerLink["vk"]
+				} else if strings.Contains(cell, "t.me/") || strings.Contains(cell, "telegram.me/") {
+					linkCount += estimationPerLink["tg"]
+				} else if strings.Contains(cell, "instagram.com/") {
+					linkCount += estimationPerLink["ig"]
+				} else if strings.Contains(cell, "rutube.ru/") {
+					linkCount += estimationPerLink["rt"]
+				} else {
+					linkCount += 0 // Default estimation for unknown links
+				}
 			}
 		}
 	}

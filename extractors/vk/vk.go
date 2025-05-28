@@ -70,9 +70,10 @@ func (ve *VKExtractor) Extract(link string) extractor.ChannelInfo {
 	}
 }
 
-// convertFollowersCount converts followers count from a string like "10K" to a number string like "10000"
+// convertFollowersCount converts followers count from a string like "10K" or "3,700" to a number string like "10000" or "3700"
 func convertFollowersCount(followersText string) string {
 	followersText = strings.ToUpper(followersText)
+	followersText = strings.ReplaceAll(followersText, ",", "")
 	if strings.Contains(followersText, "K") {
 		followersText = strings.ReplaceAll(followersText, "K", "000")
 	} else if strings.Contains(followersText, "M") {
