@@ -3,6 +3,7 @@ package instagram
 import (
 	"encoding/json"
 	"log"
+	"os"
 	"os/exec"
 	"strings"
 
@@ -34,7 +35,13 @@ func (ie *InstagramExtractor) CanHandle(link string) bool {
 // Extract extracts channel information from the given link
 func (ie *InstagramExtractor) Extract(link string) extractor.ChannelInfo {
 	// Run the Node.js script using Puppeteer
-	cmd := exec.Command("node", "scripts/puppeteer_scraper.js", link)
+	cmd := exec.Command(
+		"node",
+		"scripts/puppeteer_scraper.js",
+		link,
+		os.Getenv("INSTAGRAM_USERNAME"),
+		os.Getenv("INSTAGRAM_PASSWORD"),
+	)
 	output, err := cmd.Output()
 	if err != nil {
 		log.Printf("Error running Puppeteer script: %v", err)

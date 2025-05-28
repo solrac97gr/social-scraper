@@ -140,7 +140,7 @@ async function scrapeVK(url) {
     return result;
 }
 
-async function scrapeInstagram(url) {
+async function scrapeInstagram(url, igUsername, igPassword) {
     const browser = await puppeteer.launch({ headless: true });
     const page = await browser.newPage();
 
@@ -157,8 +157,8 @@ async function scrapeInstagram(url) {
     } catch (e) {
     }
 
-    await page.type('input[name="username"]', 'your-username'); // Replace with your Instagram username
-    await page.type('input[name="password"]', 'your-password'); // Replace with your Instagram password
+    await page.type('input[name="username"]', igUsername); // Replace with your Instagram username
+    await page.type('input[name="password"]', igPassword); // Replace with your Instagram password
     await page.click('button[type="submit"]');
 
     // Navigate to the target Instagram page
@@ -197,6 +197,8 @@ async function scrapeInstagram(url) {
 
 // Get the URL from command line arguments
 const url = process.argv[2];
+const igUsername = process.argv[3];
+const igPassword = process.argv[4];
 const domain = new URL(url).hostname;
 
 if (domain.includes('vk.com')) {
@@ -206,7 +208,7 @@ if (domain.includes('vk.com')) {
         console.error('Error:', error);
     });
 } else if (domain.includes('instagram.com')) {
-    scrapeInstagram(url).then(result => {
+    scrapeInstagram(url, igUsername, igPassword).then(result => {
         console.log(JSON.stringify(result));
     }).catch(error => {
         console.error('Error:', error);
