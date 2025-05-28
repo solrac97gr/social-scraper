@@ -52,6 +52,7 @@ func (ve *VKExtractor) Extract(link string) extractor.ChannelInfo {
 	}
 	if err := json.Unmarshal(output, &result); err != nil {
 		log.Printf("Error parsing JSON output: %v", err)
+		log.Printf("Output: %s", string(output))
 		return extractor.ChannelInfo{
 			ChannelName:    "Error",
 			FollowersCount: "N/A",
