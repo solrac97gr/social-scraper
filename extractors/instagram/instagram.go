@@ -10,6 +10,11 @@ import (
 	"github.com/solrac97gr/telegram-followers-checker/extractors/extractor"
 )
 
+const (
+	InstagramUsernameEnv = "INSTAGRAM_USERNAME"
+	InstagramPasswordEnv = "INSTAGRAM_PASSWORD"
+)
+
 // InstagramExtractor is an implementation of StatisticExtractor for Instagram
 type InstagramExtractor struct {
 	name string
@@ -39,8 +44,8 @@ func (ie *InstagramExtractor) Extract(link string) extractor.ChannelInfo {
 		"node",
 		"scripts/puppeteer_scraper.js",
 		link,
-		os.Getenv("INSTAGRAM_USERNAME"),
-		os.Getenv("INSTAGRAM_PASSWORD"),
+		os.Getenv(InstagramUsernameEnv),
+		os.Getenv(InstagramPasswordEnv),
 	)
 	output, err := cmd.Output()
 	if err != nil {
