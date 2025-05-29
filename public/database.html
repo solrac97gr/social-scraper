@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Database - Social Scraper</title>
+	<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+	<link href="styles/index.css" rel="stylesheet">
+	<style>
+		.database-container {
+			min-height: 100vh;
+			background-color: #f8f9fa;
+		}
+		
+		.database-header {
+			background: linear-gradient(135deg, #007bff, #0056b3);
+			color: white;
+			padding: 2rem 0;
+			text-align: center;
+			box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+		}
+		
+		.database-header h1 {
+			font-size: 2.5rem;
+			margin-bottom: 0.5rem;
+			font-weight: bold;
+		}
+		
+		.stats-cards {
+			margin-top: -2rem;
+			margin-bottom: 2rem;
+		}
+		
+		.stat-card {
+			background: white;
+			border-radius: 10px;
+			padding: 1.5rem;
+			text-align: center;
+			box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+			border: none;
+			transition: transform 0.3s ease;
+		}
+		
+		.stat-card:hover {
+			transform: translateY(-5px);
+		}
+		
+		.stat-card .icon {
+			font-size: 2rem;
+			margin-bottom: 0.5rem;
+		}
+		
+		.stat-card h3 {
+			font-size: 2rem;
+			font-weight: bold;
+			margin-bottom: 0.25rem;
+		}
+		
+		.stat-card p {
+			color: #6c757d;
+			margin: 0;
+		}
+		
+		.filters-section {
+			background: white;
+			border-radius: 10px;
+			padding: 1.5rem;
+			margin-bottom: 2rem;
+			box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+		}
+		
+		.table-container {
+			background: white;
+			border-radius: 10px;
+			padding: 1.5rem;
+			box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+		}
+		
+		.table {
+			margin-bottom: 0;
+		}
+		
+		.table th {
+			background-color: #007bff;
+			color: white;
+			border: none;
+			font-weight: 600;
+			padding: 1rem 0.75rem;
+		}
+		
+		.table td {
+			vertical-align: middle;
+			padding: 0.75rem;
+		}
+		
+		.platform-badge {
+			padding: 0.25rem 0.75rem;
+			border-radius: 20px;
+			font-size: 0.8rem;
+			font-weight: bold;
+		}
+		
+		.status-badge {
+			padding: 0.25rem 0.75rem;
+			border-radius: 20px;
+			font-size: 0.8rem;
+			font-weight: bold;
+		}
+		
+		.status-registered {
+			background-color: #28a745;
+			color: white;
+		}
+		
+		.status-not_registered {
+			background-color: #dc3545;
+			color: white;
+		}
+		
+		.status-not_apply {
+			background-color: #6c757d;
+			color: white;
+		}
+		
+		.pagination-container {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-top: 1.5rem;
+		}
+		
+		.loading-overlay {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background-color: rgba(0,0,0,0.5);
+			display: none;
+			justify-content: center;
+			align-items: center;
+			z-index: 9999;
+		}
+		
+		.loading-spinner {
+			background: white;
+			border-radius: 10px;
+			padding: 2rem;
+			text-align: center;
+		}
+		
+		.followers-count {
+			font-weight: bold;
+			color: #007bff;
+		}
+		
+		.channel-link {
+			color: #007bff;
+			text-decoration: none;
+		}
+		
+		.channel-link:hover {
+			text-decoration: underline;
+		}
+
+		.back-btn {
+			position: absolute;
+			top: 20px;
+			left: 20px;
+			background: rgba(255,255,255,0.2);
+			border: 1px solid rgba(255,255,255,0.3);
+			color: white;
+			padding: 0.5rem 1rem;
+			border-radius: 25px;
+			text-decoration: none;
+			transition: all 0.3s ease;
+		}
+		
+		.back-btn:hover {
+			background: rgba(255,255,255,0.3);
+			color: white;
+			text-decoration: none;
+		}
+	</style>
+</head>
+<body>
+	<div class="database-container">
+		<!-- Loading Overlay -->
+		<div class="loading-overlay" id="loadingOverlay">
+			<div class="loading-spinner">
+				<div class="spinner-border text-primary" role="status">
+					<span class="sr-only">Loading...</span>
+				</div>
+				<p class="mt-2">Loading analyses...</p>
+			</div>
+		</div>
+
+		<!-- Header -->
+		<div class="database-header animate__animated animate__fadeInDown">
+			<a href="index.html" class="back-btn">
+				<i class="fas fa-arrow-left"></i> Back to Home
+			</a>
+			<h1><i class="fas fa-database"></i> Analysis Database</h1>
+			<p>Browse and analyze saved channel data</p>
+		</div>
+
+		<div class="container">
+			<!-- Statistics Cards -->
+			<div class="row stats-cards animate__animated animate__fadeInUp">
+				<div class="col-md-3 mb-3">
+					<div class="stat-card">
+						<div class="icon text-primary">
+							<i class="fas fa-chart-bar"></i>
+						</div>
+						<h3 id="totalAnalyses">-</h3>
+						<p>Total Analyses</p>
+					</div>
+				</div>
+				<div class="col-md-3 mb-3">
+					<div class="stat-card">
+						<div class="icon text-success">
+							<i class="fas fa-users"></i>
+						</div>
+						<h3 id="totalChannels">-</h3>
+						<p>Unique Channels</p>
+					</div>
+				</div>
+				<div class="col-md-3 mb-3">
+					<div class="stat-card">
+						<div class="icon text-info">
+							<i class="fas fa-share-alt"></i>
+						</div>
+						<h3 id="totalPlatforms">-</h3>
+						<p>Platforms</p>
+					</div>
+				</div>
+				<div class="col-md-3 mb-3">
+					<div class="stat-card">
+						<div class="icon text-warning">
+							<i class="fas fa-eye"></i>
+						</div>
+						<h3 id="avgFollowers">-</h3>
+						<p>Avg Followers</p>
+					</div>
+				</div>
+			</div>
+
+			<!-- Filters Section -->
+			<div class="filters-section animate__animated animate__fadeInUp">
+				<h5><i class="fas fa-filter"></i> Filters</h5>
+				<div class="row">
+					<div class="col-md-3 mb-2">
+						<label for="platformFilter">Platform:</label>
+						<select class="form-control" id="platformFilter" onchange="applyFilters()">
+							<option value="">All Platforms</option>
+							<option value="telegram">Telegram</option>
+							<option value="instagram">Instagram</option>
+							<option value="rutube">Rutube</option>
+							<option value="vk">VK</option>
+							<option value="youtube">YouTube</option>
+						</select>
+					</div>
+					<div class="col-md-3 mb-2">
+						<label for="statusFilter">Registration Status:</label>
+						<select class="form-control" id="statusFilter" onchange="applyFilters()">
+							<option value="">All Statuses</option>
+							<option value="registered">Registered</option>
+							<option value="not_registered">Not Registered</option>
+							<option value="not_apply">Not Apply</option>
+						</select>
+					</div>
+					<div class="col-md-3 mb-2">
+						<label for="channelSearch">Search Channel:</label>
+						<input type="text" class="form-control" id="channelSearch" placeholder="Search by channel name" onkeyup="applyFilters()">
+					</div>
+					<div class="col-md-3 mb-2">
+						<label for="pageSize">Items per page:</label>
+						<select class="form-control" id="pageSize" onchange="changePageSize()">
+							<option value="10">10</option>
+							<option value="25">25</option>
+							<option value="50">50</option>
+							<option value="100">100</option>
+						</select>
+					</div>
+				</div>
+			</div>
+
+			<!-- Table Container -->
+			<div class="table-container animate__animated animate__fadeInUp">
+				<div class="table-responsive">
+					<table class="table table-striped">
+						<thead>
+							<tr>
+								<th>Channel Name</th>
+								<th>Platform</th>
+								<th>Followers</th>
+								<th>Registration Status</th>
+								<th>Link</th>
+								<th>Created At</th>
+							</tr>
+						</thead>
+						<tbody id="analysesTableBody">
+							<!-- Data will be loaded here -->
+						</tbody>
+					</table>
+				</div>
+
+				<!-- Pagination -->
+				<div class="pagination-container">
+					<div>
+						<small class="text-muted" id="pageInfo">Showing 0 of 0 results</small>
+					</div>
+					<nav>
+						<ul class="pagination pagination-sm mb-0" id="paginationNav">
+							<!-- Pagination will be generated here -->
+						</ul>
+					</nav>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.1/umd/popper.min.js"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+	<script>
+		let currentPage = 1;
+		let currentPageSize = 10;
+		let totalPages = 1;
+		let allAnalyses = [];
+		let filteredAnalyses = [];
+
+		// Load data when page loads
+		document.addEventListener('DOMContentLoaded', function() {
+			loadAnalyses();
+		});
+
+		async function loadAnalyses() {
+			showLoading();
+			try {
+				const response = await fetch(`/analyses?page=${currentPage}&limit=${currentPageSize}`);
+				const data = await response.json();
+				
+				if (data.error) {
+					throw new Error(data.error);
+				}
+
+				allAnalyses = data.analyses || [];
+				filteredAnalyses = [...allAnalyses];
+				
+				updateStatistics(data);
+				displayAnalyses(filteredAnalyses);
+				updatePagination(data);
+				
+			} catch (error) {
+				console.error('Error loading analyses:', error);
+				showError('Failed to load analyses: ' + error.message);
+			} finally {
+				hideLoading();
+			}
+		}
+
+		function updateStatistics(data) {
+			document.getElementById('totalAnalyses').textContent = data.total_count || 0;
+			document.getElementById('totalChannels').textContent = allAnalyses.length;
+			
+			const platforms = new Set(allAnalyses.map(a => a.platform));
+			document.getElementById('totalPlatforms').textContent = platforms.size;
+			
+			const avgFollowers = allAnalyses.length > 0 
+				? Math.round(allAnalyses.reduce((sum, a) => sum + (a.followers_count || 0), 0) / allAnalyses.length)
+				: 0;
+			document.getElementById('avgFollowers').textContent = avgFollowers.toLocaleString();
+		}
+
+		function displayAnalyses(analyses) {
+			const tbody = document.getElementById('analysesTableBody');
+			tbody.innerHTML = '';
+
+			if (!analyses || analyses.length === 0) {
+				tbody.innerHTML = '<tr><td colspan="6" class="text-center">No analyses found</td></tr>';
+				return;
+			}
+
+			analyses.forEach(analysis => {
+				const row = document.createElement('tr');
+				row.innerHTML = `
+					<td>
+						<strong>${escapeHtml(analysis.channel_name || 'Unknown')}</strong>
+					</td>
+					<td>
+						<span class="platform-badge badge-${analysis.platform || 'default'}">${escapeHtml(analysis.platform || 'Unknown')}</span>
+					</td>
+					<td>
+						<span class="followers-count">${(analysis.followers_count || 0).toLocaleString()}</span>
+					</td>
+					<td>
+						<span class="status-badge status-${analysis.registration_status || 'not_apply'}">${getStatusDisplay(analysis.registration_status)}</span>
+					</td>
+					<td>
+						${analysis.link 
+							? `<a href="${escapeHtml(analysis.link)}" target="_blank" class="channel-link"><i class="fas fa-external-link-alt"></i> View</a>`
+							: '<span class="text-muted">No link</span>'
+						}
+					</td>
+					<td>
+						<small class="text-muted">${formatDate(analysis.created_at)}</small>
+					</td>
+				`;
+				tbody.appendChild(row);
+			});
+		}
+
+		function updatePagination(data) {
+			const pageInfo = document.getElementById('pageInfo');
+			const paginationNav = document.getElementById('paginationNav');
+			
+			const startItem = ((data.pagination?.page || 1) - 1) * (data.pagination?.limit || currentPageSize) + 1;
+			const endItem = Math.min(startItem + (allAnalyses.length - 1), data.total_count || 0);
+			
+			pageInfo.textContent = `Showing ${startItem}-${endItem} of ${data.total_count || 0} results`;
+			
+			// Calculate total pages
+			totalPages = Math.ceil((data.total_count || 0) / (data.pagination?.limit || currentPageSize));
+			
+			// Generate pagination
+			paginationNav.innerHTML = '';
+			
+			if (totalPages <= 1) return;
+			
+			// Previous button
+			const prevLi = document.createElement('li');
+			prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+			prevLi.innerHTML = `<a class="page-link" href="#" onclick="changePage(${currentPage - 1})">Previous</a>`;
+			paginationNav.appendChild(prevLi);
+			
+			// Page numbers
+			const startPage = Math.max(1, currentPage - 2);
+			const endPage = Math.min(totalPages, currentPage + 2);
+			
+			for (let i = startPage; i <= endPage; i++) {
+				const li = document.createElement('li');
+				li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+				li.innerHTML = `<a class="page-link" href="#" onclick="changePage(${i})">${i}</a>`;
+				paginationNav.appendChild(li);
+			}
+			
+			// Next button
+			const nextLi = document.createElement('li');
+			nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+			nextLi.innerHTML = `<a class="page-link" href="#" onclick="changePage(${currentPage + 1})">Next</a>`;
+			paginationNav.appendChild(nextLi);
+		}
+
+		function changePage(page) {
+			if (page < 1 || page > totalPages) return;
+			currentPage = page;
+			loadAnalyses();
+		}
+
+		function changePageSize() {
+			currentPageSize = parseInt(document.getElementById('pageSize').value);
+			currentPage = 1;
+			loadAnalyses();
+		}
+
+		function applyFilters() {
+			const platformFilter = document.getElementById('platformFilter').value.toLowerCase();
+			const statusFilter = document.getElementById('statusFilter').value.toLowerCase();
+			const channelSearch = document.getElementById('channelSearch').value.toLowerCase();
+
+			filteredAnalyses = allAnalyses.filter(analysis => {
+				const matchesPlatform = !platformFilter || (analysis.platform || '').toLowerCase() === platformFilter;
+				const matchesStatus = !statusFilter || (analysis.registration_status || '').toLowerCase() === statusFilter;
+				const matchesChannel = !channelSearch || (analysis.channel_name || '').toLowerCase().includes(channelSearch);
+				
+				return matchesPlatform && matchesStatus && matchesChannel;
+			});
+
+			displayAnalyses(filteredAnalyses);
+		}
+
+		function getStatusDisplay(status) {
+			switch (status) {
+				case 'registered': return '✅ Registered';
+				case 'not_registered': return '❌ Not Registered';
+				case 'not_apply': return '➖ Not Apply';
+				default: return '❓ Unknown';
+			}
+		}
+
+		function formatDate(dateString) {
+			if (!dateString) return 'Unknown';
+			try {
+				const date = new Date(dateString);
+				return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+			} catch (e) {
+				return 'Invalid date';
+			}
+		}
+
+		function escapeHtml(text) {
+			const div = document.createElement('div');
+			div.textContent = text;
+			return div.innerHTML;
+		}
+
+		function showLoading() {
+			document.getElementById('loadingOverlay').style.display = 'flex';
+		}
+
+		function hideLoading() {
+			document.getElementById('loadingOverlay').style.display = 'none';
+		}
+
+		function showError(message) {
+			alert('Error: ' + message);
+		}
+	</script>
+</body>
+</html>
