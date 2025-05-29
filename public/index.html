@@ -3,106 +3,1009 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Social Scraper</title>
+	<title>Social Scraper - Modern Interface</title>
 	<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 	<link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
 	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 	<link href="styles/index.css" rel="stylesheet">
+	<style>
+		.main-container {
+			min-height: 100vh;
+			background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+		}
+		
+		.modern-header {
+			background: linear-gradient(135deg, #007bff, #0056b3);
+			color: white;
+			padding: 3rem 0;
+			text-align: center;
+			box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+			position: relative;
+			overflow: hidden;
+		}
+		
+		.modern-header::before {
+			content: '';
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" fill="rgba(255,255,255,0.1)"><polygon points="0,0 1000,0 1000,60 0,100"/></svg>') no-repeat center bottom;
+			background-size: cover;
+		}
+		
+		.modern-header h1 {
+			font-size: 3.5rem;
+			margin-bottom: 1rem;
+			font-weight: 700;
+			position: relative;
+			z-index: 2;
+		}
+		
+		.modern-header p {
+			font-size: 1.2rem;
+			margin-bottom: 0;
+			position: relative;
+			z-index: 2;
+			opacity: 0.9;
+		}
+		
+		.feature-cards {
+			margin-top: -3rem;
+			margin-bottom: 3rem;
+		}
+		
+		.feature-card {
+			background: white;
+			border-radius: 15px;
+			padding: 2rem;
+			text-align: center;
+			box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+			border: none;
+			transition: all 0.3s ease;
+			height: 100%;
+		}
+		
+		.feature-card:hover {
+			transform: translateY(-10px);
+			box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+		}
+		
+		.feature-card .icon {
+			font-size: 3rem;
+			margin-bottom: 1rem;
+			background: linear-gradient(135deg, #007bff, #0056b3);
+			-webkit-background-clip: text;
+			-webkit-text-fill-color: transparent;
+			background-clip: text;
+		}
+		
+		.feature-card h4 {
+			font-size: 1.5rem;
+			font-weight: 600;
+			margin-bottom: 1rem;
+			color: #2c3e50;
+		}
+		
+		.feature-card p {
+			color: #6c757d;
+			margin: 0;
+			line-height: 1.6;
+		}
+		
+		.upload-section {
+			background: white;
+			border-radius: 20px;
+			padding: 3rem;
+			margin-bottom: 3rem;
+			box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+			position: relative;
+			overflow: hidden;
+		}
+		
+		.upload-section::before {
+			content: '';
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			height: 5px;
+			background: linear-gradient(135deg, #007bff, #0056b3);
+		}
+		
+		.upload-area {
+			border: 3px dashed #007bff;
+			border-radius: 15px;
+			padding: 3rem 2rem;
+			text-align: center;
+			transition: all 0.3s ease;
+			background: linear-gradient(135deg, rgba(0,123,255,0.05), rgba(0,86,179,0.05));
+		}
+		
+		.upload-area:hover {
+			border-color: #0056b3;
+			background: linear-gradient(135deg, rgba(0,123,255,0.1), rgba(0,86,179,0.1));
+		}
+		
+		.upload-area.dragover {
+			border-color: #0056b3;
+			background: linear-gradient(135deg, rgba(0,123,255,0.15), rgba(0,86,179,0.15));
+			transform: scale(1.02);
+		}
+		
+		.upload-icon {
+			font-size: 4rem;
+			color: #007bff;
+			margin-bottom: 1rem;
+		}
+		
+		.upload-text {
+			font-size: 1.2rem;
+			color: #495057;
+			margin-bottom: 1rem;
+		}
+		
+		.file-input {
+			display: none;
+		}
+		
+		.upload-btn {
+			background: linear-gradient(135deg, #007bff, #0056b3);
+			border: none;
+			padding: 1rem 2rem;
+			border-radius: 50px;
+			color: white;
+			font-weight: 600;
+			transition: all 0.3s ease;
+			box-shadow: 0 4px 15px rgba(0,123,255,0.3);
+		}
+		
+		.upload-btn:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 6px 20px rgba(0,123,255,0.4);
+			color: white;
+		}
+		
+		.language-selector {
+			position: absolute;
+			top: 20px;
+			right: 20px;
+			z-index: 10;
+		}
+		
+		.language-btn {
+			background: rgba(255,255,255,0.2);
+			border: 1px solid rgba(255,255,255,0.3);
+			color: white;
+			padding: 0.5rem 1rem;
+			border-radius: 25px;
+			backdrop-filter: blur(10px);
+		}
+		
+		.database-link {
+			position: absolute;
+			top: 20px;
+			left: 20px;
+			background: rgba(255,255,255,0.2);
+			border: 1px solid rgba(255,255,255,0.3);
+			color: white;
+			padding: 0.5rem 1rem;
+			border-radius: 25px;
+			text-decoration: none;
+			transition: all 0.3s ease;
+			backdrop-filter: blur(10px);
+		}
+		
+		.database-link:hover {
+			background: rgba(255,255,255,0.3);
+			color: white;
+			text-decoration: none;
+		}
+		
+		.loading-overlay {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: rgba(0,0,0,0.7);
+			display: none;
+			justify-content: center;
+			align-items: center;
+			z-index: 9999;
+			backdrop-filter: blur(5px);
+		}
+		
+		.loading-content {
+			background: white;
+			border-radius: 20px;
+			padding: 3rem;
+			text-align: center;
+			box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+			max-width: 400px;
+			width: 90%;
+		}
+		
+		.loading-spinner {
+			width: 60px;
+			height: 60px;
+			border: 4px solid #f3f3f3;
+			border-top: 4px solid #007bff;
+			border-radius: 50%;
+			animation: spin 1s linear infinite;
+			margin: 0 auto 1rem;
+		}
+		
+		@keyframes spin {
+			0% { transform: rotate(0deg); }
+			100% { transform: rotate(360deg); }
+		}
+		
+		.results-section {
+			background: white;
+			border-radius: 20px;
+			padding: 2rem;
+			margin-bottom: 3rem;
+			box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+			display: none;
+		}
+		
+		.results-header {
+			border-bottom: 2px solid #f8f9fa;
+			padding-bottom: 1rem;
+			margin-bottom: 2rem;
+		}
+		
+		.filter-controls {
+			background: #f8f9fa;
+			border-radius: 15px;
+			padding: 1.5rem;
+			margin-bottom: 2rem;
+		}
+		
+		.results-table {
+			border-radius: 10px;
+			overflow: hidden;
+			box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+		}
+		
+		.results-table th {
+			background: linear-gradient(135deg, #007bff, #0056b3);
+			color: white;
+			border: none;
+			font-weight: 600;
+			padding: 1rem;
+		}
+		
+		.results-table td {
+			padding: 1rem;
+			vertical-align: middle;
+			border-bottom: 1px solid #f8f9fa;
+		}
+		
+		.platform-badge {
+			padding: 0.5rem 1rem;
+			border-radius: 25px;
+			font-size: 0.85rem;
+			font-weight: 600;
+			text-transform: uppercase;
+			letter-spacing: 0.5px;
+		}
+		
+		.status-badge {
+			padding: 0.5rem 1rem;
+			border-radius: 25px;
+			font-size: 0.85rem;
+			font-weight: 600;
+			text-transform: uppercase;
+			letter-spacing: 0.5px;
+		}
+		
+		.status-registered {
+			background-color: #28a745;
+			color: white;
+		}
+		
+		.status-not_registered {
+			background-color: #dc3545;
+			color: white;
+		}
+		
+		.status-not_apply {
+			background-color: #6c757d;
+			color: white;
+		}
+		
+		.status-unknown {
+			background-color: #ffc107;
+			color: #212529;
+		}
+		
+		.download-section {
+			text-align: center;
+			margin-top: 2rem;
+			padding-top: 2rem;
+			border-top: 2px solid #f8f9fa;
+		}
+		
+		.download-btn {
+			background: linear-gradient(135deg, #28a745, #20c997);
+			border: none;
+			padding: 1rem 3rem;
+			border-radius: 50px;
+			color: white;
+			font-weight: 600;
+			font-size: 1.1rem;
+			transition: all 0.3s ease;
+			box-shadow: 0 4px 15px rgba(40,167,69,0.3);
+		}
+		
+		.download-btn:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 6px 20px rgba(40,167,69,0.4);
+			color: white;
+		}
+		
+		.progress-container {
+			margin-top: 1rem;
+			display: none;
+		}
+		
+		.progress {
+			height: 8px;
+			border-radius: 10px;
+			background-color: #f8f9fa;
+		}
+		
+		.progress-bar {
+			background: linear-gradient(135deg, #007bff, #0056b3);
+			border-radius: 10px;
+			transition: width 0.3s ease;
+		}
+		
+		.file-info {
+			background: #e3f2fd;
+			border: 1px solid #2196f3;
+			border-radius: 10px;
+			padding: 1rem;
+			margin-top: 1rem;
+			display: none;
+		}
+		
+		.file-info .file-name {
+			font-weight: 600;
+			color: #1976d2;
+		}
+		
+		.file-info .file-size {
+			color: #666;
+			font-size: 0.9rem;
+		}
+	</style>
 </head>
 <body>
-	<div class="hero animate__animated animate__fadeInDown">
-		<div class="dropdown" style="position: absolute; top: 20px; right: 20px;">
-			<button class="btn btn-secondary dropdown-toggle" type="button" id="languageDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-				<span id="languageLabel">Language</span>
-			</button>
-			<div class="dropdown-menu" aria-labelledby="languageDropdown">
-				<a class="dropdown-item" href="#" onclick="changeLanguage('en')">English</a>
-				<a class="dropdown-item" href="#" onclick="changeLanguage('es')">Español</a>
-				<a class="dropdown-item" href="#" onclick="changeLanguage('ru')">Русский</a>
+	<div class="main-container">
+		<!-- Loading Overlay -->
+		<div class="loading-overlay" id="loadingOverlay">
+			<div class="loading-content">
+				<div class="loading-spinner"></div>
+				<h4>Processing Your File</h4>
+				<p id="loadingText">Analyzing channels and extracting data...</p>
+				<div class="progress-container" id="progressContainer">
+					<div class="progress">
+						<div class="progress-bar" id="progressBar" style="width: 0%"></div>
+					</div>
+					<small class="text-muted mt-2" id="progressText">Estimated time remaining: Calculating...</small>
+				</div>
 			</div>
 		</div>
-		<!-- Database Navigation Button -->
-		<div style="position: absolute; top: 20px; left: 20px;">
-			<a href="database.html" class="btn btn-outline-light">
+
+		<!-- Header -->
+		<div class="modern-header animate__animated animate__fadeInDown">
+			<a href="database.html" class="database-link">
 				<i class="fas fa-database"></i> View Database
 			</a>
+			
+			<div class="language-selector">
+				<div class="dropdown">
+					<button class="btn language-btn dropdown-toggle" type="button" id="languageDropdown" data-toggle="dropdown">
+						<i class="fas fa-globe"></i> <span id="languageLabel">Language</span>
+					</button>
+					<div class="dropdown-menu">
+						<a class="dropdown-item" href="#" onclick="changeLanguage('en')">🇺🇸 English</a>
+						<a class="dropdown-item" href="#" onclick="changeLanguage('es')">🇪🇸 Español</a>
+						<a class="dropdown-item" href="#" onclick="changeLanguage('ru')">🇷🇺 Русский</a>
+					</div>
+				</div>
+			</div>
+			
+			<h1 id="mainTitle"><i class="fas fa-rocket"></i> Social Scraper</h1>
+			<p id="mainSubtitle">Extract comprehensive insights from your favorite social media channels</p>
 		</div>
-		<h1 id="title">Social Scraper 🚀</h1>
-		<p id="subtitle">Extract information from your favorite social media channels</p>
-	</div>
-	<div class="container mt-5">
-		<div class="card mx-auto animate__animated animate__zoomIn" style="max-width: 500px;">
-			<div class="card-body">
-				<h2 class="text-center" id="uploadTitle">Upload File 📂</h2>
-				<form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
-					<div class="form-group">
-						<input type="file" name="file" class="form-control-file" />
+
+		<div class="container">
+			<!-- Feature Cards -->
+			<div class="row feature-cards animate__animated animate__fadeInUp">
+				<div class="col-lg-3 col-md-6 mb-4">
+					<div class="feature-card">
+						<div class="icon">
+							<i class="fas fa-chart-line"></i>
+						</div>
+						<h4 id="feature1Title">Analytics</h4>
+						<p id="feature1Desc">Deep insights into follower counts and engagement metrics</p>
 					</div>
-					<button type="submit" class="btn btn-primary btn-block" id="uploadButton">Upload ⬆️</button>
+				</div>
+				<div class="col-lg-3 col-md-6 mb-4">
+					<div class="feature-card">
+						<div class="icon">
+							<i class="fas fa-share-alt"></i>
+						</div>
+						<h4 id="feature2Title">Multi-Platform</h4>
+						<p id="feature2Desc">Support for Telegram, Instagram, YouTube, VK, and Rutube</p>
+					</div>
+				</div>
+				<div class="col-lg-3 col-md-6 mb-4">
+					<div class="feature-card">
+						<div class="icon">
+							<i class="fas fa-download"></i>
+						</div>
+						<h4 id="feature3Title">Export Ready</h4>
+						<p id="feature3Desc">Download results in Excel format for further analysis</p>
+					</div>
+				</div>
+				<div class="col-lg-3 col-md-6 mb-4">
+					<div class="feature-card">
+						<div class="icon">
+							<i class="fas fa-shield-alt"></i>
+						</div>
+						<h4 id="feature4Title">Secure</h4>
+						<p id="feature4Desc">Your data is processed securely and not stored permanently</p>
+					</div>
+				</div>
+			</div>
+
+			<!-- Upload Section -->
+			<div class="upload-section animate__animated animate__fadeInUp">
+				<h2 class="text-center mb-4" id="uploadSectionTitle">
+					<i class="fas fa-cloud-upload-alt"></i> Upload Your Channel List
+				</h2>
+				
+				<form id="uploadForm" enctype="multipart/form-data">
+					<div class="upload-area" id="uploadArea">
+						<div class="upload-icon">
+							<i class="fas fa-file-excel"></i>
+						</div>
+						<div class="upload-text" id="uploadText">
+							Drag and drop your Excel file here, or click to browse
+						</div>
+						<p class="text-muted mb-3" id="uploadHint">
+							Supported formats: XLSX, XLS • Max size: 10MB
+						</p>
+						<button type="button" class="btn upload-btn" onclick="document.getElementById('fileInput').click()">
+							<i class="fas fa-folder-open"></i> <span id="browseText">Choose File</span>
+						</button>
+						<input type="file" id="fileInput" class="file-input" accept=".xlsx,.xls" required>
+					</div>
+					
+					<div class="file-info" id="fileInfo">
+						<div class="d-flex justify-content-between align-items-center">
+							<div>
+								<div class="file-name" id="fileName"></div>
+								<div class="file-size" id="fileSize"></div>
+							</div>
+							<button type="button" class="btn btn-sm btn-outline-danger" onclick="clearFile()">
+								<i class="fas fa-times"></i>
+							</button>
+						</div>
+					</div>
+					
+					<div class="text-center mt-4">
+						<button type="submit" class="btn upload-btn" id="submitBtn" disabled>
+							<i class="fas fa-rocket"></i> <span id="startAnalysisText">Start Analysis</span>
+						</button>
+					</div>
 				</form>
-				<div id="loader" class="text-center animate__animated animate__fadeIn">
-					<div class="spinner-border" role="status">
-						<span class="sr-only">Loading...</span>
+			</div>
+
+			<!-- Results Section -->
+			<div class="results-section" id="resultsSection">
+				<div class="results-header">
+					<h2 id="resultsTitle">
+						<i class="fas fa-chart-bar"></i> Analysis Results
+					</h2>
+					<p class="text-muted" id="resultsSubtitle">
+						Your social media channels have been analyzed successfully
+					</p>
+				</div>
+
+				<!-- Filter Controls -->
+				<div class="filter-controls">
+					<div class="row">
+						<div class="col-md-3 mb-3">
+							<label for="minFollowersInput" id="minFollowersLabel">Minimum Followers:</label>
+							<input type="number" class="form-control" id="minFollowersInput" placeholder="0">
+						</div>
+						<div class="col-md-3 mb-3">
+							<label for="maxFollowersInput" id="maxFollowersLabel">Maximum Followers:</label>
+							<input type="number" class="form-control" id="maxFollowersInput" placeholder="∞">
+						</div>
+						<div class="col-md-3 mb-3">
+							<label for="nameFilterInput" id="nameFilterLabel">Search by Name:</label>
+							<input type="text" class="form-control" id="nameFilterInput" placeholder="Enter channel name">
+						</div>
+						<div class="col-md-3 mb-3">
+							<label for="platformFilter" id="platformFilterLabel">Platform:</label>
+							<select class="form-control" id="platformFilter">
+								<option value="all" id="allPlatformsOption">All Platforms</option>
+								<option value="telegram">Telegram</option>
+								<option value="rutube">Rutube</option>
+								<option value="vk">VK</option>
+								<option value="instagram">Instagram</option>
+								<option value="youtube">YouTube</option>
+							</select>
+						</div>
 					</div>
-						<p id="loaderText">Processing your file... ⏳</p>
+					<div class="text-center">
+						<button class="btn btn-outline-danger" id="clearFiltersBtn" onclick="clearFilters()">
+							<i class="fas fa-times"></i> <span id="clearFiltersText">Clear Filters</span>
+						</button>
+					</div>
+				</div>
+
+				<!-- Results Table -->
+				<div class="table-responsive">
+					<table class="table results-table" id="resultsTable">
+						<thead>
+							<tr>
+								<th id="channelNameHeader">Channel Name</th>
+								<th id="followersHeader">Followers</th>
+								<th id="linkHeader">Original Link</th>
+								<th id="platformHeader">Platform</th>
+								<th id="statusHeader">Registration Status</th>
+							</tr>
+						</thead>
+						<tbody id="resultsTableBody">
+							<!-- Results will be populated here -->
+						</tbody>
+					</table>
+				</div>
+
+				<!-- Download Section -->
+				<div class="download-section">
+					<button class="btn download-btn" id="downloadBtn">
+						<i class="fas fa-download"></i> <span id="downloadText">Download Results</span>
+					</button>
 				</div>
 			</div>
 		</div>
 	</div>
 
-	<!-- Add this section to display the results -->
-	<div class="container mt-5" id="resultsContainer" style="display: none;">
-		<h2 class="text-center" id="resultsTitle">Analysis Results</h2>
-		<button class="btn btn-danger mb-3" id="clearFiltersButton" onclick="clearFilters()">Clear All Filters</button>
-
-		<div class="input-group mb-3">
-			<input type="number" class="form-control" id="minFollowersInput" placeholder="Min followers" onkeyup="filterByFollowers()">
-			<input type="number" class="form-control" id="maxFollowersInput" placeholder="Max followers" onkeyup="filterByFollowers()">
-		</div>
-
-		<div class="input-group mb-3">
-			<input type="text" class="form-control" id="nameFilterInput" placeholder="Search by name" onkeyup="filterByName()">
-		</div>
-
-		<div class="dropdown mb-3">
-			<button class="btn btn-secondary dropdown-toggle" type="button" id="platformFilterDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-				Filter by Platform
-			</button>
-			<div class="dropdown-menu" aria-labelledby="platformFilterDropdown">
-				<a class="dropdown-item" href="#" onclick="filterByPlatform('all')">All</a>
-				<a class="dropdown-item" href="#" onclick="filterByPlatform('telegram')">Telegram</a>
-				<a class="dropdown-item" href="#" onclick="filterByPlatform('rutube')">Rutube</a>
-				<a class="dropdown-item" href="#" onclick="filterByPlatform('vk')">VK</a>
-				<a class="dropdown-item" href="#" onclick="filterByPlatform('instagram')">Instagram</a>
-				<a class="dropdown-item" href="#" onclick="filterByPlatform('youtube')">YouTube</a>
-			</div>
-		</div>
-
-		<table class="table table-bordered" id="resultsTable">
-			<thead>
-				<tr>
-					<th>Channel Name</th>
-					<th>Followers Count</th>
-					<th>Original Link</th>
-					<th>Platform</th>
-					<th>Registration Status</th>
-				</tr>
-			</thead>
-			<tbody id="resultsTableBody">
-				<!-- Results will be appended here -->
-			</tbody>
-		</table>
-		<button class="btn btn-success btn-block" id="downloadButton">Download Results ⬇️</button>
-	</div>
-
-	<script src="scripts/index.js"></script>
 	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.1/umd/popper.min.js"></script>
 	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 	<script>
-		$(document).ready(function() {
-			$('.dropdown-toggle').dropdown();
+		// Global variables
+		let currentResults = [];
+		let filteredResults = [];
+		let outputFile = '';
+		let processingStartTime = 0;
+		
+		// Translations
+		const translations = {
+			en: {
+				mainTitle: "Social Scraper",
+				mainSubtitle: "Extract comprehensive insights from your favorite social media channels",
+				feature1Title: "Analytics",
+				feature1Desc: "Deep insights into follower counts and engagement metrics",
+				feature2Title: "Multi-Platform", 
+				feature2Desc: "Support for Telegram, Instagram, YouTube, VK, and Rutube",
+				feature3Title: "Export Ready",
+				feature3Desc: "Download results in Excel format for further analysis",
+				feature4Title: "Secure",
+				feature4Desc: "Your data is processed securely and not stored permanently",
+				uploadSectionTitle: "Upload Your Channel List",
+				uploadText: "Drag and drop your Excel file here, or click to browse",
+				uploadHint: "Supported formats: XLSX, XLS • Max size: 10MB",
+				browseText: "Choose File",
+				startAnalysisText: "Start Analysis",
+				resultsTitle: "Analysis Results",
+				resultsSubtitle: "Your social media channels have been analyzed successfully",
+				minFollowersLabel: "Minimum Followers:",
+				maxFollowersLabel: "Maximum Followers:",
+				nameFilterLabel: "Search by Name:",
+				platformFilterLabel: "Platform:",
+				allPlatformsOption: "All Platforms",
+				clearFiltersText: "Clear Filters",
+				channelNameHeader: "Channel Name",
+				followersHeader: "Followers",
+				linkHeader: "Original Link",
+				platformHeader: "Platform", 
+				statusHeader: "Registration Status",
+				downloadText: "Download Results",
+				languageLabel: "Language"
+			},
+			es: {
+				mainTitle: "Extractor Social",
+				mainSubtitle: "Extrae información completa de tus canales de redes sociales favoritos",
+				feature1Title: "Analíticas",
+				feature1Desc: "Información profunda sobre conteos de seguidores y métricas de engagement",
+				feature2Title: "Multi-Plataforma",
+				feature2Desc: "Soporte para Telegram, Instagram, YouTube, VK y Rutube",
+				feature3Title: "Listo para Exportar",
+				feature3Desc: "Descarga resultados en formato Excel para análisis posterior",
+				feature4Title: "Seguro",
+				feature4Desc: "Tus datos se procesan de forma segura y no se almacenan permanentemente",
+				uploadSectionTitle: "Sube tu Lista de Canales",
+				uploadText: "Arrastra y suelta tu archivo Excel aquí, o haz clic para navegar",
+				uploadHint: "Formatos soportados: XLSX, XLS • Tamaño máx: 10MB",
+				browseText: "Elegir Archivo",
+				startAnalysisText: "Iniciar Análisis",
+				resultsTitle: "Resultados del Análisis",
+				resultsSubtitle: "Tus canales de redes sociales han sido analizados exitosamente",
+				minFollowersLabel: "Seguidores Mínimos:",
+				maxFollowersLabel: "Seguidores Máximos:",
+				nameFilterLabel: "Buscar por Nombre:",
+				platformFilterLabel: "Plataforma:",
+				allPlatformsOption: "Todas las Plataformas",
+				clearFiltersText: "Limpiar Filtros",
+				channelNameHeader: "Nombre del Canal",
+				followersHeader: "Seguidores",
+				linkHeader: "Enlace Original",
+				platformHeader: "Plataforma",
+				statusHeader: "Estado de Registro",
+				downloadText: "Descargar Resultados",
+				languageLabel: "Idioma"
+			},
+			ru: {
+				mainTitle: "Социальный Скрапер",
+				mainSubtitle: "Извлекайте подробную информацию из ваших любимых социальных сетей",
+				feature1Title: "Аналитика",
+				feature1Desc: "Глубокая аналитика количества подписчиков и метрик вовлеченности",
+				feature2Title: "Мульти-платформа",
+				feature2Desc: "Поддержка Telegram, Instagram, YouTube, VK и Rutube",
+				feature3Title: "Готово к экспорту",
+				feature3Desc: "Скачивайте результаты в формате Excel для дальнейшего анализа",
+				feature4Title: "Безопасно",
+				feature4Desc: "Ваши данные обрабатываются безопасно и не хранятся постоянно",
+				uploadSectionTitle: "Загрузите список каналов",
+				uploadText: "Перетащите Excel файл сюда или нажмите для выбора",
+				uploadHint: "Поддерживаемые форматы: XLSX, XLS • Макс размер: 10МБ",
+				browseText: "Выбрать файл",
+				startAnalysisText: "Начать анализ",
+				resultsTitle: "Результаты анализа",
+				resultsSubtitle: "Ваши каналы социальных сетей успешно проанализированы",
+				minFollowersLabel: "Минимум подписчиков:",
+				maxFollowersLabel: "Максимум подписчиков:",
+				nameFilterLabel: "Поиск по имени:",
+				platformFilterLabel: "Платформа:",
+				allPlatformsOption: "Все платформы",
+				clearFiltersText: "Очистить фильтры",
+				channelNameHeader: "Название канала",
+				followersHeader: "Подписчики",
+				linkHeader: "Оригинальная ссылка",
+				platformHeader: "Платформа",
+				statusHeader: "Статус регистрации",
+				downloadText: "Скачать результаты",
+				languageLabel: "Язык"
+			}
+		};
+
+		// Initialize page
+		document.addEventListener('DOMContentLoaded', function() {
+			initializeEventListeners();
+			changeLanguage('en'); // Default language
 		});
+
+		function initializeEventListeners() {
+			// File input handling
+			const fileInput = document.getElementById('fileInput');
+			const uploadArea = document.getElementById('uploadArea');
+			const uploadForm = document.getElementById('uploadForm');
+
+			fileInput.addEventListener('change', handleFileSelect);
+			
+			// Drag and drop functionality
+			uploadArea.addEventListener('dragover', handleDragOver);
+			uploadArea.addEventListener('dragleave', handleDragLeave);
+			uploadArea.addEventListener('drop', handleFileDrop);
+			
+			// Form submission
+			uploadForm.addEventListener('submit', handleFormSubmit);
+			
+			// Filter inputs
+			document.getElementById('minFollowersInput').addEventListener('input', applyFilters);
+			document.getElementById('maxFollowersInput').addEventListener('input', applyFilters);
+			document.getElementById('nameFilterInput').addEventListener('input', applyFilters);
+			document.getElementById('platformFilter').addEventListener('change', applyFilters);
+			
+			// Download button
+			document.getElementById('downloadBtn').addEventListener('click', downloadResults);
+		}
+
+		function handleFileSelect(event) {
+			const file = event.target.files[0];
+			if (file) {
+				displayFileInfo(file);
+				document.getElementById('submitBtn').disabled = false;
+			}
+		}
+
+		function handleDragOver(event) {
+			event.preventDefault();
+			document.getElementById('uploadArea').classList.add('dragover');
+		}
+
+		function handleDragLeave(event) {
+			event.preventDefault();
+			document.getElementById('uploadArea').classList.remove('dragover');
+		}
+
+		function handleFileDrop(event) {
+			event.preventDefault();
+			document.getElementById('uploadArea').classList.remove('dragover');
+			
+			const files = event.dataTransfer.files;
+			if (files.length > 0) {
+				const file = files[0];
+				document.getElementById('fileInput').files = files;
+				displayFileInfo(file);
+				document.getElementById('submitBtn').disabled = false;
+			}
+		}
+
+		function displayFileInfo(file) {
+			const fileInfo = document.getElementById('fileInfo');
+			const fileName = document.getElementById('fileName');
+			const fileSize = document.getElementById('fileSize');
+			
+			fileName.textContent = file.name;
+			fileSize.textContent = formatFileSize(file.size);
+			fileInfo.style.display = 'block';
+		}
+
+		function clearFile() {
+			document.getElementById('fileInput').value = '';
+			document.getElementById('fileInfo').style.display = 'none';
+			document.getElementById('submitBtn').disabled = true;
+		}
+
+		function formatFileSize(bytes) {
+			if (bytes === 0) return '0 Bytes';
+			const k = 1024;
+			const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+			const i = Math.floor(Math.log(bytes) / Math.log(k));
+			return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+		}
+
+		async function handleFormSubmit(event) {
+			event.preventDefault();
+			
+			const fileInput = document.getElementById('fileInput');
+			
+			if (!fileInput.files[0]) {
+				alert('Please select a file first');
+				return;
+			}
+			
+			try {
+				showLoading();
+				processingStartTime = Date.now();
+				
+				// Create FormData for estimate request
+				const estimateFormData = new FormData();
+				estimateFormData.append('file', fileInput.files[0]);
+				
+				// Get estimated time first
+				const estimateResponse = await fetch('/estimate-time', {
+					method: 'POST',
+					body: estimateFormData
+				});
+				const estimateData = await estimateResponse.json();
+				startProgressSimulation(estimateData.estimatedTime);
+				
+				// Create FormData for upload request
+				const uploadFormData = new FormData();
+				uploadFormData.append('file', fileInput.files[0]);
+				
+				// Process file
+				const response = await fetch('/upload', {
+					method: 'POST',
+					body: uploadFormData
+				});
+				
+				const data = await response.json();
+				
+				if (data.error) {
+					throw new Error(data.error);
+				}
+				
+				hideLoading();
+				displayResults(data.results);
+				outputFile = data.outputFile;
+				
+			} catch (error) {
+				hideLoading();
+				alert('Error processing file: ' + error.message);
+			}
+		}
+
+		function startProgressSimulation(estimatedTime) {
+			const progressContainer = document.getElementById('progressContainer');
+			const progressBar = document.getElementById('progressBar');
+			const progressText = document.getElementById('progressText');
+			
+			progressContainer.style.display = 'block';
+			
+			let progress = 0;
+			const increment = 100 / (estimatedTime * 10); // Update every 100ms
+			
+			const interval = setInterval(() => {
+				progress += increment;
+				if (progress >= 95) {
+					progress = 95; // Stop at 95% until actual completion
+					clearInterval(interval);
+				}
+				
+				progressBar.style.width = progress + '%';
+				const remaining = Math.max(0, estimatedTime - ((Date.now() - processingStartTime) / 1000));
+				progressText.textContent = `Estimated time remaining: ${Math.ceil(remaining)}s`;
+			}, 100);
+		}
+
+		function displayResults(results) {
+			// Skip the header row (first element) and convert array format to objects
+			const dataRows = results.slice(1); // Remove header row
+			currentResults = dataRows.map(row => ({
+				ChannelName: row[0] || 'Unknown',
+				FollowersCount: parseInt(row[1]) || 0,
+				Link: row[2] || '',
+				Platform: row[3] || 'Unknown',
+				RegistrationStatus: row[4] || 'unknown'
+			}));
+			
+			filteredResults = [...currentResults];
+			
+			const resultsSection = document.getElementById('resultsSection');
+			resultsSection.style.display = 'block';
+			resultsSection.scrollIntoView({ behavior: 'smooth' });
+			
+			populateResultsTable(filteredResults);
+		}
+
+		function populateResultsTable(results) {
+			const tbody = document.getElementById('resultsTableBody');
+			tbody.innerHTML = '';
+			
+			if (!results || results.length === 0) {
+				tbody.innerHTML = '<tr><td colspan="5" class="text-center">No results found</td></tr>';
+				return;
+			}
+			
+			results.forEach((result, index) => {
+				const row = document.createElement('tr');
+				row.className = 'animate__animated animate__fadeInUp';
+				row.style.animationDelay = (index * 0.1) + 's';
+				
+				row.innerHTML = `
+					<td><strong>${escapeHtml(result.ChannelName || 'Unknown')}</strong></td>
+					<td><span class="followers-count">${(result.FollowersCount || 0).toLocaleString()}</span></td>
+					<td>
+						${result.Link 
+							? `<a href="${escapeHtml(result.Link)}" target="_blank" class="channel-link"><i class="fas fa-external-link-alt"></i> View</a>`
+							: '<span class="text-muted">No link</span>'
+						}
+					</td>
+					<td><span class="platform-badge badge-${result.Platform || 'default'}">${escapeHtml(result.Platform || 'Unknown')}</span></td>
+					<td><span class="status-badge status-${getStatusClass(result.RegistrationStatus)}">${getStatusDisplay(result.RegistrationStatus)}</span></td>
+				`;
+				
+				tbody.appendChild(row);
+			});
+		}
+
+		function applyFilters() {
+			const minFollowers = parseInt(document.getElementById('minFollowersInput').value) || 0;
+			const maxFollowers = parseInt(document.getElementById('maxFollowersInput').value) || Infinity;
+			const nameFilter = document.getElementById('nameFilterInput').value.toLowerCase();
+			const platformFilter = document.getElementById('platformFilter').value;
+			
+			filteredResults = currentResults.filter(result => {
+				const followersCount = result.FollowersCount || 0;
+				const channelName = (result.ChannelName || '').toLowerCase();
+				const platform = result.Platform || '';
+				
+				const meetsFollowersFilter = followersCount >= minFollowers && followersCount <= maxFollowers;
+				const meetsNameFilter = !nameFilter || channelName.includes(nameFilter);
+				const meetsPlatformFilter = platformFilter === 'all' || platform.toLowerCase() === platformFilter;
+				
+				return meetsFollowersFilter && meetsNameFilter && meetsPlatformFilter;
+			});
+			
+			populateResultsTable(filteredResults);
+		}
+
+		function clearFilters() {
+			document.getElementById('minFollowersInput').value = '';
+			document.getElementById('maxFollowersInput').value = '';
+			document.getElementById('nameFilterInput').value = '';
+			document.getElementById('platformFilter').value = 'all';
+			applyFilters();
+		}
+
+		function downloadResults() {
+			if (outputFile) {
+				window.location.href = `/download?filename=${encodeURIComponent(outputFile)}`;
+			}
+		}
+
+		function getStatusClass(status) {
+			if (!status) return 'unknown';
+			
+			const statusLower = status.toLowerCase();
+			if (statusLower.includes('registered') && statusLower.includes('🟢')) {
+				return 'registered';
+			} else if (statusLower.includes('not registered') && statusLower.includes('🔴')) {
+				return 'not_registered';
+			} else if (statusLower.includes('not applicable') && statusLower.includes('⚪')) {
+				return 'not_apply';
+			} else {
+				return 'unknown';
+			}
+		}
+
+		function getStatusDisplay(status) {
+			if (!status) return '❓ Unknown';
+			
+			const statusLower = status.toLowerCase();
+			if (statusLower.includes('registered') && statusLower.includes('🟢')) {
+				return '✅ Registered';
+			} else if (statusLower.includes('not registered') && statusLower.includes('🔴')) {
+				return '❌ Not Registered';
+			} else if (statusLower.includes('not applicable') && statusLower.includes('⚪')) {
+				return '➖ Not Apply';
+			} else {
+				return '❓ Unknown';
+			}
+		}
+
+		function escapeHtml(text) {
+			const div = document.createElement('div');
+			div.textContent = text;
+			return div.innerHTML;
+		}
+
+		function showLoading() {
+			document.getElementById('loadingOverlay').style.display = 'flex';
+		}
+
+		function hideLoading() {
+			const progressBar = document.getElementById('progressBar');
+			progressBar.style.width = '100%';
+			
+			setTimeout(() => {
+				document.getElementById('loadingOverlay').style.display = 'none';
+				document.getElementById('progressContainer').style.display = 'none';
+				progressBar.style.width = '0%';
+			}, 500);
+		}
+
+		function changeLanguage(lang) {
+			const elements = translations[lang];
+			if (!elements) return;
+			
+			// Update all translatable elements
+			Object.keys(elements).forEach(key => {
+				const element = document.getElementById(key);
+				if (element) {
+					if (element.tagName === 'INPUT' && element.placeholder !== undefined) {
+						element.placeholder = elements[key];
+					} else {
+						element.textContent = elements[key];
+					}
+				}
+			});
+		}
 	</script>
 </body>
 </html>

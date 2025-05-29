@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Social Scraper</title>
+	<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+	<link href="styles/index.css" rel="stylesheet">
+</head>
+<body>
+	<div class="hero animate__animated animate__fadeInDown">
+		<div class="dropdown" style="position: absolute; top: 20px; right: 20px;">
+			<button class="btn btn-secondary dropdown-toggle" type="button" id="languageDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+				<span id="languageLabel">Language</span>
+			</button>
+			<div class="dropdown-menu" aria-labelledby="languageDropdown">
+				<a class="dropdown-item" href="#" onclick="changeLanguage('en')">English</a>
+				<a class="dropdown-item" href="#" onclick="changeLanguage('es')">Español</a>
+				<a class="dropdown-item" href="#" onclick="changeLanguage('ru')">Русский</a>
+			</div>
+		</div>
+		<!-- Database Navigation Button -->
+		<div style="position: absolute; top: 20px; left: 20px;">
+			<a href="database.html" class="btn btn-outline-light">
+				<i class="fas fa-database"></i> View Database
+			</a>
+		</div>
+		<h1 id="title">Social Scraper 🚀</h1>
+		<p id="subtitle">Extract information from your favorite social media channels</p>
+	</div>
+	<div class="container mt-5">
+		<div class="card mx-auto animate__animated animate__zoomIn" style="max-width: 500px;">
+			<div class="card-body">
+				<h2 class="text-center" id="uploadTitle">Upload File 📂</h2>
+				<form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
+					<div class="form-group">
+						<input type="file" name="file" class="form-control-file" />
+					</div>
+					<button type="submit" class="btn btn-primary btn-block" id="uploadButton">Upload ⬆️</button>
+				</form>
+				<div id="loader" class="text-center animate__animated animate__fadeIn">
+					<div class="spinner-border" role="status">
+						<span class="sr-only">Loading...</span>
+					</div>
+						<p id="loaderText">Processing your file... ⏳</p>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Add this section to display the results -->
+	<div class="container mt-5" id="resultsContainer" style="display: none;">
+		<h2 class="text-center" id="resultsTitle">Analysis Results</h2>
+		<button class="btn btn-danger mb-3" id="clearFiltersButton" onclick="clearFilters()">Clear All Filters</button>
+
+		<div class="input-group mb-3">
+			<input type="number" class="form-control" id="minFollowersInput" placeholder="Min followers" onkeyup="filterByFollowers()">
+			<input type="number" class="form-control" id="maxFollowersInput" placeholder="Max followers" onkeyup="filterByFollowers()">
+		</div>
+
+		<div class="input-group mb-3">
+			<input type="text" class="form-control" id="nameFilterInput" placeholder="Search by name" onkeyup="filterByName()">
+		</div>
+
+		<div class="dropdown mb-3">
+			<button class="btn btn-secondary dropdown-toggle" type="button" id="platformFilterDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+				Filter by Platform
+			</button>
+			<div class="dropdown-menu" aria-labelledby="platformFilterDropdown">
+				<a class="dropdown-item" href="#" onclick="filterByPlatform('all')">All</a>
+				<a class="dropdown-item" href="#" onclick="filterByPlatform('telegram')">Telegram</a>
+				<a class="dropdown-item" href="#" onclick="filterByPlatform('rutube')">Rutube</a>
+				<a class="dropdown-item" href="#" onclick="filterByPlatform('vk')">VK</a>
+				<a class="dropdown-item" href="#" onclick="filterByPlatform('instagram')">Instagram</a>
+				<a class="dropdown-item" href="#" onclick="filterByPlatform('youtube')">YouTube</a>
+			</div>
+		</div>
+
+		<table class="table table-bordered" id="resultsTable">
+			<thead>
+				<tr>
+					<th>Channel Name</th>
+					<th>Followers Count</th>
+					<th>Original Link</th>
+					<th>Platform</th>
+					<th>Registration Status</th>
+				</tr>
+			</thead>
+			<tbody id="resultsTableBody">
+				<!-- Results will be appended here -->
+			</tbody>
+		</table>
+		<button class="btn btn-success btn-block" id="downloadButton">Download Results ⬇️</button>
+	</div>
+
+	<script src="scripts/index.js"></script>
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.1/umd/popper.min.js"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+	<script>
+		$(document).ready(function() {
+			$('.dropdown-toggle').dropdown();
+		});
+	</script>
+</body>
+</html>
