@@ -22,6 +22,17 @@ type App struct {
 
 // NewApp creates a new App instance
 func NewApp(influencersRepository database.InfluencerRepository, fm filemanager.FileManager, extractors ...extractor.StatisticExtractor) *App {
+
+	if influencersRepository == nil {
+		log.Fatal("influencersRepository cannot be nil")
+	}
+	if fm == nil {
+		log.Fatal("fileManager cannot be nil")
+	}
+	if len(extractors) == 0 {
+		log.Fatal("At least one extractor must be provided")
+	}
+
 	return &App{
 		influencersRepository: influencersRepository,
 		fileManager:           fm,
