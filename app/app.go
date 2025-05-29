@@ -145,6 +145,8 @@ func (a *App) Run(inputFile string, outputFile string) [][]string {
 	// Save results to output file
 	a.fileManager.SaveResultsToExcel(orderedResults, outputFile)
 
+	// Second iteration to safely save influencer analysis to the database after all the
+	// results have been collected and saved to the output file
 	for i, result := range orderedResults {
 		if i == 0 {
 			continue // Skip header row
