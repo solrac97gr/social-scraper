@@ -2,10 +2,12 @@ package app
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 	"sync"
 	"time"
 
+	"github.com/solrac97gr/telegram-followers-checker/database"
 	"github.com/solrac97gr/telegram-followers-checker/extractors/extractor"
 	"github.com/solrac97gr/telegram-followers-checker/filemanager"
 	ruregistration "github.com/solrac97gr/telegram-followers-checker/ru-registration"
@@ -13,15 +15,17 @@ import (
 
 // App orchestrates the components of the application
 type App struct {
-	fileManager filemanager.FileManager
-	extractors  []extractor.StatisticExtractor
+	influencersRepository database.InfluencerRepository
+	fileManager           filemanager.FileManager
+	extractors            []extractor.StatisticExtractor
 }
 
 // NewApp creates a new App instance
-func NewApp(fm filemanager.FileManager, extractors ...extractor.StatisticExtractor) *App {
+func NewApp(influencersRepository database.InfluencerRepository, fm filemanager.FileManager, extractors ...extractor.StatisticExtractor) *App {
 	return &App{
-		fileManager: fm,
-		extractors:  extractors,
+		influencersRepository: influencersRepository,
+		fileManager:           fm,
+		extractors:            extractors,
 	}
 }
 
@@ -49,65 +53,73 @@ func (a *App) Run(inputFile string, outputFile string) [][]string {
 
 	// Process each link concurrently
 	for i, link := range links {
-		// Find appropriate extractor for this link
-		var info extractor.ChannelInfo
-		for _, e := range a.extractors {
-			if e.CanHandle(link) {
-				info = e.Extract(link)
-				info.Platform = e.Name()
-				break
-			}
+		resp, err := a.influencersRepository.GetInfluencerAnalysisByLink(link)
+		if err != nil {
+			log.Printf("Error fetching analysis for %s: %v", link, err)
 		}
-
-		// If no extractor found or extraction failed, use defaults
-		if info.ChannelName == "" {
-			info = extractor.ChannelInfo{
-				ChannelName:    "Unknown",
-				FollowersCount: "0",
-				OriginalLink:   link,
-				Platform:       "Unknown",
-			}
-		}
-
-		// Skip registration status check if platform is Instagram or followers count is < 10000
-		followersCount, err := strconv.Atoi(info.FollowersCount)
-		if info.Platform == "Instagram" || (err == nil && followersCount < 10000) {
-			info.RegistrationStatus = "not applicable ⚪"
-			// Store result directly at the correct position
-			resultsList[i] = []string{info.ChannelName, info.FollowersCount, info.OriginalLink, info.Platform, info.RegistrationStatus}
-			continue
-		}
-
-		// Add to WaitGroup only for links that will be processed
-		wg.Add(1)
-		go func(idx int, currentInfo extractor.ChannelInfo, linkUrl string) {
-			defer wg.Done()
-
-			// Define isRegistered channel
-			isRegistered := make(chan bool)
-
-			go func() {
-				semaphore <- struct{}{} // Acquire semaphore
-				isRegistered <- ruregistration.CheckRegistrationStatus(linkUrl, semaphore)
-				close(isRegistered)
-			}()
-
-			// Collect the result
-			currentInfo.IsRegistered = <-isRegistered
-			if currentInfo.IsRegistered {
-				currentInfo.RegistrationStatus = "registered 🟢"
-			} else {
-				currentInfo.RegistrationStatus = "not registered 🔴"
+		if resp != nil && err == nil {
+			log.Printf("Link %s already processed, getting from database.", link)
+			resultsList[i] = resp.ToExcelRow()
+		} else { // Find appropriate extractor for this link
+			var info extractor.ChannelInfo
+			for _, e := range a.extractors {
+				if e.CanHandle(link) {
+					info = e.Extract(link)
+					info.Platform = e.Name()
+					break
+				}
 			}
 
-			// Store result at the correct position in the resultsList
-			mutex.Lock()
-			resultsList[idx] = []string{currentInfo.ChannelName, currentInfo.FollowersCount, currentInfo.OriginalLink, currentInfo.Platform, currentInfo.RegistrationStatus}
-			mutex.Unlock()
+			// If no extractor found or extraction failed, use defaults
+			if info.ChannelName == "" {
+				info = extractor.ChannelInfo{
+					ChannelName:    "Unknown",
+					FollowersCount: "0",
+					OriginalLink:   link,
+					Platform:       "Unknown",
+				}
+			}
 
-			// Avoid hitting rate limits
-			time.Sleep(1 * time.Second)
-		}(i, info, link)
+			// Skip registration status check if platform is Instagram or followers count is < 10000
+			followersCount, err := strconv.Atoi(info.FollowersCount)
+			if info.Platform == "Instagram" || (err == nil && followersCount < 10000) {
+				info.RegistrationStatus = "not applicable ⚪"
+				// Store result directly at the correct position
+				resultsList[i] = []string{info.ChannelName, info.FollowersCount, info.OriginalLink, info.Platform, info.RegistrationStatus}
+				continue
+			}
+
+			// Add to WaitGroup only for links that will be processed
+			wg.Add(1)
+			go func(idx int, currentInfo extractor.ChannelInfo, linkUrl string) {
+				defer wg.Done()
+
+				// Define isRegistered channel
+				isRegistered := make(chan bool)
+
+				go func() {
+					semaphore <- struct{}{} // Acquire semaphore
+					isRegistered <- ruregistration.CheckRegistrationStatus(linkUrl, semaphore)
+					close(isRegistered)
+				}()
+
+				// Collect the result
+				currentInfo.IsRegistered = <-isRegistered
+				if currentInfo.IsRegistered {
+					currentInfo.RegistrationStatus = "registered 🟢"
+				} else {
+					currentInfo.RegistrationStatus = "not registered 🔴"
+				}
+
+				// Store result at the correct position in the resultsList
+				mutex.Lock()
+				resultsList[idx] = []string{currentInfo.ChannelName, currentInfo.FollowersCount, currentInfo.OriginalLink, currentInfo.Platform, currentInfo.RegistrationStatus}
+				mutex.Unlock()
+
+				// Avoid hitting rate limits
+				time.Sleep(1 * time.Second)
+			}(i, info, link)
+		}
 	}
 
 	// Wait for all goroutines to finish
@@ -116,8 +128,31 @@ func (a *App) Run(inputFile string, outputFile string) [][]string {
 	// Append all results in order
 	orderedResults = append(orderedResults, resultsList...)
 
+	log.Printf("Processed %d links successfully. Preparing to save results...", len(links))
+
+	log.Printf("orderedResults: %v", orderedResults)
 	// Save results to output file
 	a.fileManager.SaveResultsToExcel(orderedResults, outputFile)
+
+	for i, result := range orderedResults {
+		if i == 0 {
+			continue // Skip header row
+		}
+
+		// [Channel Name 0 | Followers Count 1 | Original Link 2 | Platform 3 | Registration Status 4]
+		analysis := database.NewInfluencerAnalysis(
+			result[0], // ChannelName
+			result[2], // Link
+			result[3], // Platform
+			result[1], // FollowersCount
+			result[4], // RegistrationStatus
+		) // Set expiration date to 30 days from now
+		err := a.influencersRepository.SaveInfluencerAnalysis(analysis)
+		if err != nil {
+			log.Printf("Error saving analysis for %s: %v", result[0], err)
+			continue
+		}
+	}
 
 	fmt.Printf("\nSuccess! Results saved to %s\n", outputFile)
 
