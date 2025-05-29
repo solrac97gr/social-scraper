@@ -7,9 +7,11 @@ build:
 	go build -o bin/scraper main.go
 
 run:
+	infracli run mongo
 	go run cmd/http/main.go
 
 cli:
+	infracli run mongo
 	go run cmd/cli/main.go
 
 clean:
