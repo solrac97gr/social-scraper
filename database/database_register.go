@@ -21,6 +21,7 @@ type InfluencerAnalysis struct {
 	Platform           string    `json:"platform" bson:"platform"`
 	RegistrationStatus Status    `json:"registration_status" bson:"registration_status"`
 	ExpirationDate     time.Time `json:"expiration_date" bson:"expiration_date"`
+	CreatedAt          time.Time `json:"created_at" bson:"created_at"`
 }
 
 func NewInfluencerAnalysis(channelName, link, platform string, followersCount string, registrationStatus string) *InfluencerAnalysis {
@@ -44,6 +45,7 @@ func NewInfluencerAnalysis(channelName, link, platform string, followersCount st
 			return NotApply // Default to NotApply if not registered or not applicable
 		}(registrationStatus),
 		ExpirationDate: time.Now().Add(30 * 24 * time.Hour), // Default expiration date set to 15 days from now
+		CreatedAt:      time.Now(),
 	}
 }
 

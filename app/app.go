@@ -1,7 +1,6 @@
 package app
 
 import (
-	"fmt"
 	"log"
 	"strconv"
 	"sync"
@@ -96,7 +95,19 @@ func (a *App) Run(inputFile string, outputFile string) [][]string {
 			if info.Platform == "Instagram" || (err == nil && followersCount < 10000) {
 				info.RegistrationStatus = "not applicable ⚪"
 				// Store result directly at the correct position
-				resultsList[i] = []string{info.ChannelName, info.FollowersCount, info.OriginalLink, info.Platform, info.RegistrationStatus}
+				analysis := database.NewInfluencerAnalysis(
+					info.ChannelName,        // ChannelName
+					info.OriginalLink,       // Link
+					info.Platform,           // Platform
+					info.FollowersCount,     // FollowersCount
+					info.RegistrationStatus, // RegistrationStatus
+				)
+				resultsList[i] = analysis.ToExcelRow()
+				err := a.influencersRepository.SaveInfluencerAnalysis(analysis)
+				if err != nil {
+					log.Printf("Error saving analysis for %s: %v", info.OriginalLink, err)
+					continue
+				}
 				continue
 			}
 
@@ -124,9 +135,19 @@ func (a *App) Run(inputFile string, outputFile string) [][]string {
 
 				// Store result at the correct position in the resultsList
 				mutex.Lock()
-				resultsList[idx] = []string{currentInfo.ChannelName, currentInfo.FollowersCount, currentInfo.OriginalLink, currentInfo.Platform, currentInfo.RegistrationStatus}
+				analysis := database.NewInfluencerAnalysis(
+					currentInfo.ChannelName,        // ChannelName
+					currentInfo.OriginalLink,       // Link
+					currentInfo.Platform,           // Platform
+					currentInfo.FollowersCount,     // FollowersCount
+					currentInfo.RegistrationStatus, // RegistrationStatus
+				)
+				err := a.influencersRepository.SaveInfluencerAnalysis(analysis)
+				if err != nil {
+					log.Printf("Error saving analysis for %s: %v", info.OriginalLink, err)
+				}
+				resultsList[idx] = analysis.ToExcelRow()
 				mutex.Unlock()
-
 				// Avoid hitting rate limits
 				time.Sleep(1 * time.Second)
 			}(i, info, link)
@@ -144,30 +165,6 @@ func (a *App) Run(inputFile string, outputFile string) [][]string {
 	log.Printf("orderedResults: %v", orderedResults)
 	// Save results to output file
 	a.fileManager.SaveResultsToExcel(orderedResults, outputFile)
-
-	// Second iteration to safely save influencer analysis to the database after all the
-	// results have been collected and saved to the output file
-	for i, result := range orderedResults {
-		if i == 0 {
-			continue // Skip header row
-		}
-
-		// [Channel Name 0 | Followers Count 1 | Original Link 2 | Platform 3 | Registration Status 4]
-		analysis := database.NewInfluencerAnalysis(
-			result[0], // ChannelName
-			result[2], // Link
-			result[3], // Platform
-			result[1], // FollowersCount
-			result[4], // RegistrationStatus
-		) // Set expiration date to 30 days from now
-		err := a.influencersRepository.SaveInfluencerAnalysis(analysis)
-		if err != nil {
-			log.Printf("Error saving analysis for %s: %v", result[0], err)
-			continue
-		}
-	}
-
-	fmt.Printf("\nSuccess! Results saved to %s\n", outputFile)
 
 	return orderedResults
 }
