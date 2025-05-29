@@ -59,3 +59,11 @@ func (repo *MongoRepository) GetInfluencerAnalysisByLink(link string) (*Influenc
 	}
 	return analysis, nil
 }
+
+func (repo *MongoRepository) DeleteExpiredAnalyses() error {
+	ctx := context.Background()
+	collection := repo.client.Database(DatabaseName).Collection(CollectionName)
+	filter := bson.M{"expiration_date": bson.M{"$lt": time.Now()}}
+	_, err := collection.DeleteMany(ctx, filter)
+	return err
+}
