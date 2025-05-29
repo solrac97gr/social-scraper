@@ -6,6 +6,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 const (
@@ -66,4 +67,43 @@ func (repo *MongoRepository) DeleteExpiredAnalyses() error {
 	filter := bson.M{"expiration_date": bson.M{"$lt": time.Now()}}
 	_, err := collection.DeleteMany(ctx, filter)
 	return err
+}
+
+func (repo *MongoRepository) GetAllInfluencerAnalyses(page int, limit int) (AllInfluencerAnalysis, error) {
+	ctx := context.Background()
+	collection := repo.client.Database(DatabaseName).Collection(CollectionName)
+
+	skip := (page - 1) * limit
+	filter := bson.M{"expiration_date": bson.M{"$gt": time.Now()}}
+	cursor, err := collection.Find(ctx, filter, options.Find().SetSkip(int64(skip)).SetLimit(int64(limit)))
+	if err != nil {
+		return AllInfluencerAnalysis{}, err
+	}
+	defer cursor.Close(ctx)
+
+	var analyses []*InfluencerAnalysis
+	for cursor.Next(ctx) {
+		var analysis InfluencerAnalysis
+		if err := cursor.Decode(&analysis); err != nil {
+			return AllInfluencerAnalysis{}, err
+		}
+		analyses = append(analyses, &analysis)
+	}
+
+	totalCount, err := collection.CountDocuments(ctx, filter)
+	if err != nil {
+		return AllInfluencerAnalysis{}, err
+	}
+
+	return AllInfluencerAnalysis{
+		TotalCount: totalCount,
+		Analyses:   analyses,
+		Pagination: struct {
+			Page  int64 `json:"page" bson:"page"`
+			Limit int64 `json:"limit" bson:"limit"`
+		}{
+			Page:  int64(page),
+			Limit: int64(limit),
+		},
+	}, nil
 }

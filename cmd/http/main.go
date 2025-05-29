@@ -68,9 +68,11 @@ func main() {
 	fiberApp.Static("/", "./public")
 
 	// Register handlers
+	fiberApp.Get("/health", hdl.HealthCheckHandler)
 	fiberApp.Post("/upload", hdl.UploadHandler)
 	fiberApp.Get("/download", hdl.DownloadHandler)
 	fiberApp.Post("/estimate-time", hdl.EstimateTimeHandler)
+	fiberApp.Get("/analyses", hdl.AnalysesHandler)
 
 	errors := make(chan error, 2)
 

@@ -3,6 +3,7 @@ package handlers
 import (
 	"log"
 	"os"
+	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -95,4 +96,38 @@ func (h *Handlers) EstimateTimeHandler(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"estimatedTime": (estimatedTime) * 4,
 	})
+}
+
+func (h *Handlers) HealthCheckHandler(c *fiber.Ctx) error {
+	return c.SendString("OK")
+}
+
+func (h *Handlers) AnalysesHandler(c *fiber.Ctx) error {
+	page := c.Query("page", "1")
+	pageNum, err := strconv.Atoi(page)
+	if err != nil || pageNum < 1 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid page number",
+		})
+	}
+	limit := c.Query("limit", "10")
+	limitNum, err := strconv.Atoi(limit)
+	if err != nil || limitNum < 1 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid limit number",
+		})
+	}
+	// Ensure the limit does not exceed a reasonable maximum
+	if limitNum > 100 {
+		limitNum = 100
+	}
+
+	analyses, err := h.Repository.GetAllInfluencerAnalyses(pageNum, limitNum)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to retrieve analyses",
+		})
+	}
+
+	return c.JSON(analyses)
 }
