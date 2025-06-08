@@ -167,22 +167,6 @@
 			color: white;
 		}
 		
-		.language-selector {
-			position: absolute;
-			top: 20px;
-			right: 20px;
-			z-index: 10;
-		}
-		
-		.language-btn {
-			background: rgba(255,255,255,0.2);
-			border: 1px solid rgba(255,255,255,0.3);
-			color: white;
-			padding: 0.5rem 1rem;
-			border-radius: 25px;
-			backdrop-filter: blur(10px);
-		}
-		
 		.database-link {
 			position: absolute;
 			top: 20px;
@@ -291,6 +275,13 @@
 			font-weight: 600;
 			text-transform: uppercase;
 			letter-spacing: 0.5px;
+		}
+		
+		/* Responsive adjustments for header elements */
+		@media (max-width: 768px) {
+			.database-link {
+				top: 70px;
+			}
 		}
 		
 		.status-badge {
@@ -426,6 +417,14 @@
 							<a class="dropdown-item" href="#" id="logoutBtn">
 								<i class="fas fa-sign-out-alt"></i> Logout
 							</a>
+							<div class="dropdown-divider"></div>
+							<h6 class="dropdown-header">
+								<i class="fas fa-globe"></i> Language
+							</h6>
+							<a class="dropdown-item" href="#" onclick="changeLanguage('en')">🇺🇸 English</a>
+							<a class="dropdown-item" href="#" onclick="changeLanguage('es')">🇪🇸 Español</a>
+							<a class="dropdown-item" href="#" onclick="changeLanguage('ru')">🇷🇺 Русский</a>
+							
 						</div>
 					</div>
 				</div>
@@ -434,19 +433,6 @@
 			<a href="database.html" class="database-link">
 				<i class="fas fa-database"></i> View Database
 			</a>
-			
-			<div class="language-selector">
-				<div class="dropdown">
-					<button class="btn language-btn dropdown-toggle" type="button" id="languageDropdown" data-toggle="dropdown">
-						<i class="fas fa-globe"></i> <span id="languageLabel">Language</span>
-					</button>
-					<div class="dropdown-menu">
-						<a class="dropdown-item" href="#" onclick="changeLanguage('en')">🇺🇸 English</a>
-						<a class="dropdown-item" href="#" onclick="changeLanguage('es')">🇪🇸 Español</a>
-						<a class="dropdown-item" href="#" onclick="changeLanguage('ru')">🇷🇺 Русский</a>
-					</div>
-				</div>
-			</div>
 			
 			<h1 id="mainTitle"><i class="fas fa-rocket"></i> Social Scraper</h1>
 			<p id="mainSubtitle">Extract comprehensive insights from your favorite social media channels</p>

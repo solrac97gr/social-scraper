@@ -15,6 +15,7 @@ const (
 
 type InfluencerAnalysis struct {
 	ID                 string    `json:"id" bson:"_id,omitempty"`
+	UserID             string    `json:"user_id" bson:"user_id"` // ID of the user who created the analysis
 	ChannelName        string    `json:"channel_name" bson:"channel_name"`
 	FollowersCount     int       `json:"followers_count" bson:"followers_count"`
 	Link               string    `json:"link" bson:"link"`
@@ -24,7 +25,7 @@ type InfluencerAnalysis struct {
 	CreatedAt          time.Time `json:"created_at" bson:"created_at"`
 }
 
-func NewInfluencerAnalysis(channelName, link, platform string, followersCount string, registrationStatus string) *InfluencerAnalysis {
+func NewInfluencerAnalysis(userID, channelName, link, platform string, followersCount string, registrationStatus string) *InfluencerAnalysis {
 	var followersCountInt int
 	followersCountInt, err := strconv.Atoi(followersCount)
 	if err != nil {
@@ -32,6 +33,7 @@ func NewInfluencerAnalysis(channelName, link, platform string, followersCount st
 	}
 
 	return &InfluencerAnalysis{
+		UserID:         userID,
 		ChannelName:    channelName,
 		FollowersCount: followersCountInt,
 		Link:           link,

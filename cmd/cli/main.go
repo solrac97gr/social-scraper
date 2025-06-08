@@ -54,7 +54,7 @@ func main() {
 
 	// Initialize and run app
 	application := app.NewInfluencerApp(repo, fm, telegramExtractor, rutubeExtractor, vkExtractor, instagramExtractor)
-	application.Run(inputFile, outputFile)
+	application.Run("system", inputFile, outputFile)
 
 	log.Printf("Execution time: %v", time.Since(startAt))
 }

@@ -40,7 +40,7 @@ func NewInfluencerApp(influencersRepository database.InfluencerRepository, fm fi
 }
 
 // Run processes the input file and generates the output file
-func (a *InfluencerApp) Run(inputFile string, outputFile string) [][]string {
+func (a *InfluencerApp) Run(userId string, inputFile string, outputFile string) [][]string {
 	// Read links from input file
 	links := a.fileManager.ReadLinksFromExcel(inputFile)
 
@@ -96,6 +96,7 @@ func (a *InfluencerApp) Run(inputFile string, outputFile string) [][]string {
 				info.RegistrationStatus = "not applicable ⚪"
 				// Store result directly at the correct position
 				analysis := database.NewInfluencerAnalysis(
+					userId,                  // UserID
 					info.ChannelName,        // ChannelName
 					info.OriginalLink,       // Link
 					info.Platform,           // Platform
@@ -136,6 +137,7 @@ func (a *InfluencerApp) Run(inputFile string, outputFile string) [][]string {
 				// Store result at the correct position in the resultsList
 				mutex.Lock()
 				analysis := database.NewInfluencerAnalysis(
+					userId,                         // UserID
 					currentInfo.ChannelName,        // ChannelName
 					currentInfo.OriginalLink,       // Link
 					currentInfo.Platform,           // Platform

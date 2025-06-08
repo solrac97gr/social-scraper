@@ -29,9 +29,15 @@ func (h *Handlers) UploadHandler(c *fiber.Ctx) error {
 	}
 
 	outputFile := "results/" + uniqueID + "_channels_followers.xlsx"
+	userID, ok := c.Locals("userID").(string)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "User ID not found in context",
+		})
+	}
 
 	// Run the application logic
-	results := h.InfluencerApp.Run(inputFile, outputFile)
+	results := h.InfluencerApp.Run(userID, inputFile, outputFile)
 
 	// Delete the temp files
 	if err := os.Remove(inputFile); err != nil {
