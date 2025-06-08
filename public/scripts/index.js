@@ -356,12 +356,12 @@ document.getElementById('uploadForm').addEventListener('submit', async function(
     if (currentInputMode === 'file') {
         const fileInput = document.getElementById('fileInput');
         if (fileInput.files.length === 0) {
-            alert('Please select a file');
+            alert('Please select a file first');
             document.getElementById('loader').style.display = 'none';
             return;
         }
         formData.append('file', fileInput.files[0]);
-    } else {
+    } else if (currentInputMode === 'text') {
         const textInput = document.getElementById('linkTextInput');
         if (!textInput.value.trim()) {
             alert('Please enter some links');
@@ -369,6 +369,10 @@ document.getElementById('uploadForm').addEventListener('submit', async function(
             return;
         }
         formData.append('textInput', textInput.value.trim());
+    } else {
+        alert('Please select an input method');
+        document.getElementById('loader').style.display = 'none';
+        return;
     }
 
     try {
