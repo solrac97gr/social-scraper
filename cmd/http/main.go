@@ -82,6 +82,16 @@ func main() {
 	// Serve static files from the root directory
 	fiberApp.Static("/", "./public")
 
+	// Add route for dashboard protection
+	fiberApp.Get("/dashboard.html", func(c *fiber.Ctx) error {
+		return c.SendFile("./public/dashboard.html")
+	})
+
+	// Add route for database protection
+	fiberApp.Get("/database.html", func(c *fiber.Ctx) error {
+		return c.SendFile("./public/database.html")
+	})
+
 	// Public routes (no JWT required)
 	publicGroup := fiberApp.Group("/api/v1")
 	publicUserHandlers := publicGroup.Group("/users")

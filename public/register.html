@@ -137,6 +137,13 @@
 <body>
     <div class="container">
         <div class="register-container animate__animated animate__fadeInUp">
+            <!-- Back to Home Link -->
+            <div class="text-center mb-3">
+                <a href="/" class="text-muted" style="text-decoration: none;">
+                    <i class="fas fa-arrow-left"></i> Back to Home
+                </a>
+            </div>
+            
             <div class="app-logo">
                 <i class="fas fa-chart-line"></i>
                 <h3 style="color: #007bff; font-weight: 700;">Social Scraper</h3>
@@ -187,6 +194,7 @@
 
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="scripts/auth.js"></script>
     <script>
         function showAlert(message, type = 'danger') {
             const alertContainer = document.getElementById('alert-container');

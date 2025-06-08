@@ -1,5 +1,5 @@
-// Authentication and JWT token management
-const AuthManager = {
+// Dashboard Authentication and JWT token management
+const DashboardAuthManager = {
     getToken() {
         return localStorage.getItem('authToken');
     },
@@ -45,7 +45,7 @@ const AuthManager = {
             userSection.style.display = 'block';
             
             if (userInfo) {
-                userDisplayName.textContent = userInfo.id || 'User';
+                userDisplayName.textContent = userInfo.username || 'User';
                 userEmail.textContent = userInfo.email || '';
             }
         } else {
@@ -91,14 +91,22 @@ const AuthManager = {
 
 // Protected fetch function that includes JWT token
 async function authenticatedFetch(url, options = {}) {
-    if (!AuthManager.isLoggedIn()) {
+    if (!DashboardAuthManager.isLoggedIn()) {
         throw new Error('Authentication required');
     }
     
+    // Check if we're sending FormData (for file uploads)
+    const isFormData = options.body instanceof FormData;
+    
     const headers = {
-        ...AuthManager.getAuthHeaders(),
+        ...DashboardAuthManager.getAuthHeaders(),
         ...(options.headers || {})
     };
+    
+    // Remove Content-Type header for FormData to let browser set it with boundary
+    if (isFormData) {
+        delete headers['Content-Type'];
+    }
     
     const response = await fetch(url, {
         ...options,
@@ -106,9 +114,15 @@ async function authenticatedFetch(url, options = {}) {
     });
     
     if (response.status === 401) {
-        AuthManager.logout();
+        DashboardAuthManager.logout();
         window.location.href = 'login.html';
         throw new Error('Authentication expired');
+    }
+    
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server error:', response.status, errorText);
+        throw new Error(`Server error (${response.status}): ${errorText}`);
     }
     
     return response;
@@ -315,13 +329,13 @@ document.getElementById('uploadForm').addEventListener('submit', async function(
     event.preventDefault();
     
     // Check authentication first
-    if (!AuthManager.isLoggedIn()) {
+    if (!DashboardAuthManager.isLoggedIn()) {
         showAuthModal();
         return;
     }
     
     // Verify token is still valid
-    if (!(await AuthManager.verifyToken())) {
+    if (!(await DashboardAuthManager.verifyToken())) {
         showAuthModal();
         return;
     }
@@ -379,12 +393,12 @@ document.getElementById('uploadForm').addEventListener('submit', async function(
         });
 
         document.getElementById('downloadButton').addEventListener('click', function() {
-            const token = AuthManager.getToken();
+            const token = DashboardAuthManager.getToken();
             const downloadUrl = `/api/v1/influencers/download?filename=${uploadData.outputFile}`;
             
             // Create a temporary link with auth header for download
             fetch(downloadUrl, {
-                headers: AuthManager.getAuthHeaders()
+                headers: DashboardAuthManager.getAuthHeaders()
             })
             .then(response => response.blob())
             .then(blob => {
@@ -414,25 +428,110 @@ document.getElementById('uploadForm').addEventListener('submit', async function(
     }
 });
 
+// File upload functionality
+function setupFileUpload() {
+    const fileInput = document.getElementById('fileInput');
+    const uploadArea = document.getElementById('uploadArea');
+    const fileInfo = document.getElementById('fileInfo');
+    const fileName = document.getElementById('fileName');
+    const fileSize = document.getElementById('fileSize');
+    const uploadText = document.getElementById('uploadText');
+
+    if (!fileInput || !uploadArea) return;
+
+    // File input change handler
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            showFileInfo(file);
+        }
+    });
+
+    // Drag and drop handlers
+    uploadArea.addEventListener('click', function() {
+        fileInput.click();
+    });
+
+    uploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+    });
+
+    uploadArea.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+    });
+
+    uploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            const file = files[0];
+            // Validate file type
+            if (file.type.includes('sheet') || file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+                fileInput.files = files;
+                showFileInfo(file);
+            } else {
+                alert('Please select a valid Excel file (.xlsx or .xls)');
+            }
+        }
+    });
+
+    function showFileInfo(file) {
+        if (fileName && fileSize && fileInfo && uploadText) {
+            fileName.textContent = file.name;
+            fileSize.textContent = formatFileSize(file.size);
+            fileInfo.style.display = 'block';
+            uploadText.textContent = 'File selected successfully';
+            uploadArea.classList.add('file-selected');
+        }
+    }
+
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+}
+
+function clearFile() {
+    const fileInput = document.getElementById('fileInput');
+    const fileInfo = document.getElementById('fileInfo');
+    const uploadText = document.getElementById('uploadText');
+    const uploadArea = document.getElementById('uploadArea');
+
+    if (fileInput) fileInput.value = '';
+    if (fileInfo) fileInfo.style.display = 'none';
+    if (uploadText) uploadText.textContent = 'Drag and drop your Excel file here, or click to browse';
+    if (uploadArea) uploadArea.classList.remove('file-selected');
+}
+
 // Initialize authentication UI and event handlers
 document.addEventListener('DOMContentLoaded', function() {
     // Update authentication UI
-    AuthManager.updateAuthUI();
+    DashboardAuthManager.updateAuthUI();
     
     // Verify token on page load
-    AuthManager.verifyToken();
+    DashboardAuthManager.verifyToken();
     
     // Set up logout handler
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', function(e) {
             e.preventDefault();
-            AuthManager.logout();
+            DashboardAuthManager.logout();
         });
     }
     
+    // Set up file upload functionality
+    setupFileUpload();
+    
     // Load user analyses if logged in
-    if (AuthManager.isLoggedIn()) {
+    if (DashboardAuthManager.isLoggedIn()) {
         loadUserAnalyses();
     }
 });

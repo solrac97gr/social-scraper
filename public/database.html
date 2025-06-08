@@ -8,6 +8,7 @@
 	<link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
 	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 	<link href="styles/index.css" rel="stylesheet">
+	<script src="scripts/auth.js"></script>
 	<style>
 		.database-container {
 			min-height: 100vh;
@@ -186,6 +187,61 @@
 	</style>
 </head>
 <body>
+	<!-- Navigation Bar -->
+	<nav class="navbar navbar-expand-lg navbar-dark" style="background: linear-gradient(135deg, #007bff, #0056b3); box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+		<div class="container">
+			<a class="navbar-brand font-weight-bold" href="/dashboard.html">
+				<i class="fas fa-chart-line me-2"></i>Social Scraper
+			</a>
+			<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
+				<span class="navbar-toggler-icon"></span>
+			</button>
+			<div class="collapse navbar-collapse" id="navbarNav">
+				<ul class="navbar-nav mr-auto">
+					<li class="nav-item">
+						<a class="nav-link" href="/dashboard.html">
+							<i class="fas fa-tachometer-alt"></i> Dashboard
+						</a>
+					</li>
+					<li class="nav-item active">
+						<a class="nav-link" href="/database.html">
+							<i class="fas fa-database"></i> Database
+						</a>
+					</li>
+				</ul>
+				<ul class="navbar-nav">
+					<li class="nav-item dropdown">
+						<a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown">
+							<i class="fas fa-user-circle"></i>
+							<span id="nav-user-email">Loading...</span>
+						</a>
+						<div class="dropdown-menu dropdown-menu-right">
+							<h6 class="dropdown-header">
+								<i class="fas fa-user"></i> Account Info
+							</h6>
+							<div class="dropdown-item-text">
+								<small class="text-muted">Email:</small><br>
+								<span id="user-email">Loading...</span>
+							</div>
+							<div class="dropdown-item-text">
+								<small class="text-muted">Role:</small><br>
+								<span id="user-role">Loading...</span>
+							</div>
+							<div class="dropdown-item-text">
+								<small class="text-muted">Subscription:</small><br>
+								<span id="user-subscription">Loading...</span>
+							</div>
+							<div class="dropdown-divider"></div>
+							<a class="dropdown-item" href="#" onclick="handleLogout()">
+								<i class="fas fa-sign-out-alt text-danger"></i> Logout
+							</a>
+						</div>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</nav>
+
 	<div class="database-container">
 		<!-- Loading Overlay -->
 		<div class="loading-overlay" id="loadingOverlay">
@@ -350,92 +406,45 @@
 		let allAnalyses = [];
 		let filteredAnalyses = [];
 
-		// Authentication Manager (same as in index.js)
-		const AuthManager = {
-			getToken() {
-				return localStorage.getItem('authToken');
-			},
-			
-			getUserInfo() {
-				const userInfo = localStorage.getItem('userInfo');
-				return userInfo ? JSON.parse(userInfo) : null;
-			},
-			
-			isLoggedIn() {
-				return !!this.getToken();
-			},
-			
-			logout() {
-				localStorage.removeItem('authToken');
-				localStorage.removeItem('userInfo');
-				localStorage.removeItem('rememberUser');
-				window.location.href = 'login.html';
-			},
-			
-			getAuthHeaders() {
-				const token = this.getToken();
-				return token ? {
-					'Authorization': `Bearer ${token}`,
-					'Content-Type': 'application/json'
-				} : {
-					'Content-Type': 'application/json'
-				};
-			}
-		};
-
-		// Protected fetch function
-		async function authenticatedFetch(url, options = {}) {
-			if (!AuthManager.isLoggedIn()) {
-				window.location.href = 'login.html';
-				return;
-			}
-			
-			const headers = {
-				...AuthManager.getAuthHeaders(),
-				...(options.headers || {})
-			};
-			
-			const response = await fetch(url, {
-				...options,
-				headers
-			});
-			
-			if (response.status === 401) {
-				AuthManager.logout();
-				return;
-			}
-			
-			return response;
-		}
-
 		// Load data when page loads
 		document.addEventListener('DOMContentLoaded', function() {
 			// Check authentication first
-			if (!AuthManager.isLoggedIn()) {
+			if (!window.authManager.isAuthenticated()) {
 				window.location.href = 'login.html';
 				return;
 			}
 			
 			// Update user info in navigation
-			const userInfo = AuthManager.getUserInfo();
+			const userInfo = window.authManager.getUser();
 			if (userInfo) {
 				document.getElementById('userDisplayName').textContent = userInfo.username || 'User';
 				document.getElementById('userEmail').textContent = userInfo.email || '';
+				
+				// Also update navbar user info
+				document.getElementById('nav-user-email').textContent = userInfo.email || '';
+				document.getElementById('user-email').textContent = userInfo.email || '';
+				document.getElementById('user-role').textContent = userInfo.role || 'User';
+				document.getElementById('user-subscription').textContent = userInfo.subscription || 'Free';
 			}
 			
-			// Set up logout handler
+			// Set up logout handlers
 			document.getElementById('logoutBtn').addEventListener('click', function(e) {
 				e.preventDefault();
-				AuthManager.logout();
+				window.authManager.logout();
 			});
 			
 			loadAnalyses();
 		});
 
+		// Logout handler for navbar
+		function handleLogout() {
+			window.authManager.logout();
+		}
+
 		async function loadAnalyses() {
 			showLoading();
 			try {
-				const response = await authenticatedFetch(`/api/v1/influencers/analyses?page=${currentPage}&limit=${currentPageSize}`);
+				const response = await window.authenticatedFetch(`/api/v1/influencers/analyses?page=${currentPage}&limit=${currentPageSize}`);
 				
 				if (!response) {
 					return; // Redirected to login

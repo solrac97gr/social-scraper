@@ -29,6 +29,7 @@ type Claims struct {
 	Email        string                `json:"email"`
 	Role         database.Role         `json:"role"`
 	Subscription database.Subscription `json:"subscription"`
+	Username     string                `json:"username"`
 	jwt.RegisteredClaims
 }
 
@@ -233,6 +234,7 @@ func (u *UserApp) GenerateToken(user *database.User) (string, error) {
 	// Create the claims
 	claims := &Claims{
 		UserID:       user.ID,
+		Username:     user.Username,
 		Email:        user.Email,
 		Role:         user.Role,
 		Subscription: user.Subscription,
