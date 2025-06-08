@@ -549,8 +549,6 @@ async function loadUserAnalyses() {
         const response = await authenticatedFetch('/api/v1/influencers/analyses?page=1&limit=5');
         if (response.ok) {
             const data = await response.json();
-            // You can add code here to show recent analyses in a dashboard
-            console.log('Recent analyses:', data);
         }
     } catch (error) {
         console.error('Failed to load user analyses:', error);
