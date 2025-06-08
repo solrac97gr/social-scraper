@@ -8,11 +8,13 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
-	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
+	"github.com/solrac97gr/telegram-followers-checker/app"
 	handlers "github.com/solrac97gr/telegram-followers-checker/cmd/http/handlers"
+	"github.com/solrac97gr/telegram-followers-checker/cmd/http/middleware"
+	"github.com/solrac97gr/telegram-followers-checker/config"
 	"github.com/solrac97gr/telegram-followers-checker/database"
 	"github.com/solrac97gr/telegram-followers-checker/extractors/instagram"
 	"github.com/solrac97gr/telegram-followers-checker/extractors/rutube"
@@ -26,28 +28,30 @@ const (
 )
 
 func main() {
-	err := godotenv.Load()
+	config, err := config.NewConfig()
 	if err != nil {
-		log.Fatalf("Error loading .env file: %v", err)
+		log.Fatalf("Error creating config: %v", err)
 	}
-	log.Print("Environment variables loaded successfully echo var:", os.Getenv(EchoVar))
+	log.Print("Environment variables loaded successfully echo var [Ping]:", os.Getenv(EchoVar))
 	fiberApp := fiber.New()
 	fiberApp.Use(logger.New())
 
 	// Initialize MongoDB client
-	mongoClient, err := mongo.Connect(context.Background(), options.Client().ApplyURI(os.Getenv("MONGO_URI")))
+
+	mongoClient, err := mongo.Connect(context.Background(), options.Client().ApplyURI(config.MongoURI))
 	if err != nil {
 		log.Fatalf("Error connecting to MongoDB: %v", err)
 	}
+	if err := database.InitializeDatabase(mongoClient, config); err != nil {
+		log.Fatalf("Error initializing database: %v", err)
+	}
 
 	// Initialize components
-	repo, err := database.NewMongoRepository(mongoClient)
+	repo, err := database.NewMongoRepository(mongoClient, config)
 	if err != nil {
 		log.Fatalf("Error creating MongoDB repository: %v", err)
 	}
-	log.Println("Deleting expired analyses at startup...")
 	repo.DeleteExpiredAnalyses()
-	log.Println("Expired analyses deleted successfully")
 
 	fm := filemanager.NewFileManager()
 	telegramExtractor := telegram.NewTelegramExtractor()
@@ -55,27 +59,45 @@ func main() {
 	vkExtractor := vk.NewVKExtractor()
 	instagramExtractor := instagram.NewInstagramExtractor()
 
-	hdl := handlers.NewHandlers(
-		repo,
-		fm,
-		telegramExtractor,
-		rutubeExtractor,
-		vkExtractor,
-		instagramExtractor,
-	)
+	influencersApp := app.NewInfluencerApp(repo, fm, telegramExtractor, rutubeExtractor, vkExtractor, instagramExtractor)
+
+	userRepo, err := database.NewUserMongoRepository(mongoClient, config)
+	if err != nil {
+		log.Fatalf("Error creating user MongoDB repository: %v", err)
+	}
+	usersApp := app.NewUserApp(userRepo, config.JWTSecret)
+
+	hdl, err := handlers.NewHandlers(influencersApp, usersApp)
+	if err != nil {
+		log.Fatalf("Error creating handlers: %v", err)
+	}
+
+	auth, err := middleware.NewAuthMiddleware(&middleware.JWTConfig{
+		Secret: config.JWTSecret,
+	})
+	if err != nil {
+		log.Fatalf("Error creating middlewares: %v", err)
+	}
 
 	// Serve static files from the root directory
 	fiberApp.Static("/", "./public")
 
-	// Register handlers
-	fiberApp.Get("/health", hdl.HealthCheckHandler)
-	fiberApp.Post("/upload", hdl.UploadHandler)
-	fiberApp.Get("/download", hdl.DownloadHandler)
-	fiberApp.Post("/estimate-time", hdl.EstimateTimeHandler)
-	fiberApp.Get("/analyses", hdl.AnalysesHandler)
+	// Public routes (no JWT required)
+	publicGroup := fiberApp.Group("/api/v1")
+	publicUserHandlers := publicGroup.Group("/users")
+	publicUserHandlers.Post("/register", hdl.RegisterUserHandler)
+	publicUserHandlers.Post("/login", hdl.LoginUserHandler)
 
-	errors := make(chan error, 2)
+	// Protected routes (JWT required)
+	apiv1Group := fiberApp.Group("/api/v1", auth.WithJWT())
+	influencersHandlers := apiv1Group.Group("/influencers")
+	influencersHandlers.Get("/health", hdl.HealthCheckHandler)
+	influencersHandlers.Post("/upload", hdl.UploadHandler)
+	influencersHandlers.Get("/download", hdl.DownloadHandler)
+	influencersHandlers.Post("/estimate-time", hdl.EstimateTimeHandler)
+	influencersHandlers.Get("/analyses", hdl.AnalysesHandler)
 
+	errors := make(chan error, 3)
 	go func() {
 		log.Println("Starting ticker for deleting expired analyses...")
 		TickerDeleteExpiredAnalyses(repo)
@@ -85,6 +107,10 @@ func main() {
 		if err := fiberApp.Listen(":3000"); err != nil {
 			errors <- err
 		}
+	}()
+	go func() {
+		log.Println("Starting ticker for deleting expired tokens...")
+		TickerDeleteExpiredTokens(userRepo)
 	}()
 
 	for err := range errors {
@@ -115,6 +141,21 @@ func TickerDeleteExpiredAnalyses(repo database.InfluencerRepository) {
 			log.Printf("Error deleting expired analyses: %v", err)
 		} else {
 			log.Println("Expired analyses deleted successfully")
+		}
+	}
+}
+
+func TickerDeleteExpiredTokens(repo database.UserRepository) {
+	ticker := time.NewTicker(24 * time.Hour) // Adjust the interval as needed
+	defer ticker.Stop()
+
+	for range ticker.C {
+		log.Println("Deleting expired tokens...")
+		err := repo.DeleteExpiredTokens()
+		if err != nil {
+			log.Printf("Error deleting expired tokens: %v", err)
+		} else {
+			log.Println("Expired tokens deleted successfully")
 		}
 	}
 }

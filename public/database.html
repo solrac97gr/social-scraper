@@ -340,7 +340,7 @@
 		async function loadAnalyses() {
 			showLoading();
 			try {
-				const response = await fetch(`/analyses?page=${currentPage}&limit=${currentPageSize}`);
+				const response = await fetch(`/api/v1/analyses?page=${currentPage}&limit=${currentPageSize}`);
 				const data = await response.json();
 				
 				if (data.error) {

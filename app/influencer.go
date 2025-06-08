@@ -12,15 +12,15 @@ import (
 	ruregistration "github.com/solrac97gr/telegram-followers-checker/ru-registration"
 )
 
-// App orchestrates the components of the application
-type App struct {
+// InfluencerApp orchestrates the components of the application
+type InfluencerApp struct {
 	influencersRepository database.InfluencerRepository
 	fileManager           filemanager.FileManager
 	extractors            []extractor.StatisticExtractor
 }
 
-// NewApp creates a new App instance
-func NewApp(influencersRepository database.InfluencerRepository, fm filemanager.FileManager, extractors ...extractor.StatisticExtractor) *App {
+// NewInfluencerApp creates a new App instance
+func NewInfluencerApp(influencersRepository database.InfluencerRepository, fm filemanager.FileManager, extractors ...extractor.StatisticExtractor) *InfluencerApp {
 
 	if influencersRepository == nil {
 		log.Fatal("influencersRepository cannot be nil")
@@ -32,7 +32,7 @@ func NewApp(influencersRepository database.InfluencerRepository, fm filemanager.
 		log.Fatal("At least one extractor must be provided")
 	}
 
-	return &App{
+	return &InfluencerApp{
 		influencersRepository: influencersRepository,
 		fileManager:           fm,
 		extractors:            extractors,
@@ -40,7 +40,7 @@ func NewApp(influencersRepository database.InfluencerRepository, fm filemanager.
 }
 
 // Run processes the input file and generates the output file
-func (a *App) Run(inputFile string, outputFile string) [][]string {
+func (a *InfluencerApp) Run(inputFile string, outputFile string) [][]string {
 	// Read links from input file
 	links := a.fileManager.ReadLinksFromExcel(inputFile)
 
@@ -167,4 +167,12 @@ func (a *App) Run(inputFile string, outputFile string) [][]string {
 	a.fileManager.SaveResultsToExcel(orderedResults, outputFile)
 
 	return orderedResults
+}
+
+func (a *InfluencerApp) GetAllInfluencerAnalysis(pageNum, limit int) (database.AllInfluencerAnalysis, error) {
+	return a.influencersRepository.GetAllInfluencerAnalyses(pageNum, limit)
+}
+
+func (a *InfluencerApp) EstimateProcessingTime(inputFile string) (int, error) {
+	return a.fileManager.EstimateProcessingTime(inputFile)
 }

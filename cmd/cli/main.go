@@ -6,8 +6,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/joho/godotenv"
 	"github.com/solrac97gr/telegram-followers-checker/app"
+	"github.com/solrac97gr/telegram-followers-checker/config"
 	"github.com/solrac97gr/telegram-followers-checker/database"
 	instagram "github.com/solrac97gr/telegram-followers-checker/extractors/instagram"
 	"github.com/solrac97gr/telegram-followers-checker/extractors/rutube"
@@ -19,6 +19,11 @@ import (
 )
 
 func main() {
+	config, err := config.NewConfig()
+	if err != nil {
+		log.Fatalf("Error creating config: %v", err)
+	}
+
 	startAt := time.Now()
 	// Check if input argument is provided
 	if len(os.Args) < 2 {
@@ -28,11 +33,6 @@ func main() {
 	inputFile := os.Args[1]
 	outputFile := "channels_followers.xlsx"
 
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatalf("Error loading .env file: %v", err)
-	}
-
 	// Initialize MongoDB client
 	mongoClient, err := mongo.Connect(context.Background(), options.Client().ApplyURI(os.Getenv("MONGO_URI")))
 	if err != nil {
@@ -40,7 +40,7 @@ func main() {
 	}
 
 	// Initialize components
-	repo, err := database.NewMongoRepository(mongoClient)
+	repo, err := database.NewMongoRepository(mongoClient, config)
 	if err != nil {
 		log.Fatalf("Error creating MongoDB repository: %v", err)
 	}
@@ -53,7 +53,7 @@ func main() {
 	instagramExtractor := instagram.NewInstagramExtractor()
 
 	// Initialize and run app
-	application := app.NewApp(repo, fm, telegramExtractor, rutubeExtractor, vkExtractor, instagramExtractor)
+	application := app.NewInfluencerApp(repo, fm, telegramExtractor, rutubeExtractor, vkExtractor, instagramExtractor)
 	application.Run(inputFile, outputFile)
 
 	log.Printf("Execution time: %v", time.Since(startAt))

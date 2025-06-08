@@ -4,38 +4,40 @@ import (
 	"context"
 	"time"
 
+	"github.com/solrac97gr/telegram-followers-checker/config"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 const (
-	DatabaseName   = "influencer-db"
-	CollectionName = "influencer-analysis"
+	InfluencersCollectionName = "influencer-analysis"
 )
 
 type MongoRepository struct {
 	client *mongo.Client
+	config *config.Config
 }
 
-func NewMongoRepository(client *mongo.Client) (*MongoRepository, error) {
+func NewMongoRepository(client *mongo.Client, config *config.Config) (*MongoRepository, error) {
 	if client == nil {
 		return nil, mongo.ErrClientDisconnected
 	}
 
 	return &MongoRepository{
 		client: client,
+		config: config,
 	}, nil
 }
 
 func (repo *MongoRepository) save(ctx context.Context, data interface{}) error {
-	collection := repo.client.Database(DatabaseName).Collection(CollectionName)
+	collection := repo.client.Database(repo.config.InfluencersDBName).Collection(InfluencersCollectionName)
 	_, err := collection.InsertOne(ctx, data)
 	return err
 }
 
 func (repo *MongoRepository) findOne(ctx context.Context, filter interface{}) (*InfluencerAnalysis, error) {
-	collection := repo.client.Database(DatabaseName).Collection(CollectionName)
+	collection := repo.client.Database(repo.config.InfluencersDBName).Collection(InfluencersCollectionName)
 	result := collection.FindOne(ctx, filter)
 	if result.Err() != nil {
 		return nil, result.Err()
@@ -63,7 +65,7 @@ func (repo *MongoRepository) GetInfluencerAnalysisByLink(link string) (*Influenc
 
 func (repo *MongoRepository) DeleteExpiredAnalyses() error {
 	ctx := context.Background()
-	collection := repo.client.Database(DatabaseName).Collection(CollectionName)
+	collection := repo.client.Database(repo.config.InfluencersDBName).Collection(InfluencersCollectionName)
 	filter := bson.M{"expiration_date": bson.M{"$lt": time.Now()}}
 	_, err := collection.DeleteMany(ctx, filter)
 	return err
@@ -71,7 +73,7 @@ func (repo *MongoRepository) DeleteExpiredAnalyses() error {
 
 func (repo *MongoRepository) GetAllInfluencerAnalyses(page int, limit int) (AllInfluencerAnalysis, error) {
 	ctx := context.Background()
-	collection := repo.client.Database(DatabaseName).Collection(CollectionName)
+	collection := repo.client.Database(repo.config.InfluencersDBName).Collection(InfluencersCollectionName)
 
 	skip := (page - 1) * limit
 	filter := bson.M{"expiration_date": bson.M{"$gt": time.Now()}}

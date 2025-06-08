@@ -15,3 +15,15 @@ type InfluencerRepository interface {
 	DeleteExpiredAnalyses() error
 	GetAllInfluencerAnalyses(page int, limit int) (AllInfluencerAnalysis, error)
 }
+
+type UserRepository interface {
+	SaveUser(user *User) error
+	SaveUserToken(token *UserToken) error
+	SaveUserProfile(profile *UserProfile) error
+	UpdateUserProfile(userID string, profile *UserProfile) error
+	UpdateUser(user *User) error
+	GetUserByID(userID string) (*User, error)
+	GetUserByEmail(email string) (*User, error)
+	GetUserTokenByUserID(userID string) (*UserToken, error)
+	DeleteExpiredTokens() error
+}
