@@ -396,21 +396,12 @@
 			// Update user info in navigation
 			const userInfo = window.authManager.getUser();
 			if (userInfo) {
-				document.getElementById('userDisplayName').textContent = userInfo.username || 'User';
-				document.getElementById('userEmail').textContent = userInfo.email || '';
-				
-				// Also update navbar user info
+				// Update navbar user info
 				document.getElementById('nav-user-email').textContent = userInfo.email || '';
 				document.getElementById('user-email').textContent = userInfo.email || '';
 				document.getElementById('user-role').textContent = userInfo.role || 'User';
 				document.getElementById('user-subscription').textContent = userInfo.subscription || 'Free';
 			}
-			
-			// Set up logout handlers
-			document.getElementById('logoutBtn').addEventListener('click', function(e) {
-				e.preventDefault();
-				window.authManager.logout();
-			});
 			
 			loadAnalyses();
 		});
