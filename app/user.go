@@ -85,7 +85,11 @@ func (u *UserApp) SaveUser(user string, email string, password string, confirmat
 		UpdatedAt:       time.Now(),                // Set the current time as updated at
 	}
 
-	if err := u.Repository.SaveUser(userObj); err != nil {
+	userId, err := u.Repository.SaveUser(userObj)
+	if err != nil {
+		return err
+	}
+	if err := u.SaveUserProfile(userId, "", "", "", "", ""); err != nil {
 		return err
 	}
 	return nil
@@ -156,7 +160,7 @@ func (u *UserApp) ValidateToken(tokenString string) (*database.UserToken, error)
 
 func (u *UserApp) SaveUserProfile(userID string, firstName string, lastName string, phoneNumber string, address string, profilePic string) error {
 	profile := &database.UserProfile{
-		ID:          userID,
+		UserID:      userID,
 		FirstName:   firstName,
 		LastName:    lastName,
 		PhoneNumber: phoneNumber,

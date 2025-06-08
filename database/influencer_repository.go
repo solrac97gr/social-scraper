@@ -17,7 +17,7 @@ type InfluencerRepository interface {
 }
 
 type UserRepository interface {
-	SaveUser(user *User) error
+	SaveUser(user *User) (string, error)
 	SaveUserToken(token *UserToken) error
 	SaveUserProfile(profile *UserProfile) error
 	UpdateUserProfile(userID string, profile *UserProfile) error

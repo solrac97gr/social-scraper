@@ -7,6 +7,7 @@ import (
 
 	"github.com/solrac97gr/telegram-followers-checker/config"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -100,20 +101,23 @@ func (u *UserMongoRepository) GetUserTokenByUserID(userID string) (*UserToken, e
 }
 
 // SaveUser implements UserRepository.
-func (u *UserMongoRepository) SaveUser(user *User) error {
+func (u *UserMongoRepository) SaveUser(user *User) (string, error) {
 	ctx := context.Background()
 	collection := u.client.Database(u.config.UsersDBName).Collection(UserCollectionName)
 	// validate if the user already exists using the email field since it is unique
 	filter := bson.M{"email": user.Email}
 	count, err := collection.CountDocuments(ctx, filter)
 	if err != nil {
-		return err
+		return "", err
 	}
 	if count > 0 {
-		return ErrUserAlreadyExist
+		return "", ErrUserAlreadyExist
 	}
-	_, err = collection.InsertOne(ctx, user)
-	return err
+	result, err := collection.InsertOne(ctx, user)
+	if err != nil {
+		return "", err
+	}
+	return result.InsertedID.(primitive.ObjectID).Hex(), nil
 }
 
 // SaveUserProfile implements UserRepository.

@@ -31,7 +31,7 @@ type User struct {
 }
 
 type UserProfile struct {
-	ID          string    `json:"id" bson:"_id"`
+	ID          string    `json:"id" bson:"_id,omitempty"`          // Unique identifier for the user profile
 	UserID      string    `json:"user_id" bson:"user_id"`           // ID of the user associated with the profile
 	FirstName   string    `json:"first_name" bson:"first_name"`     // First name of the user
 	LastName    string    `json:"last_name" bson:"last_name"`       // Last name of the user
