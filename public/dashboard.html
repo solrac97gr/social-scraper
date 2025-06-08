@@ -921,7 +921,36 @@
 					window.location.href = 'login.html';
 					return;
 				}
-				window.location.href = `/api/v1/influencers/download?filename=${encodeURIComponent(outputFile)}&token=${AuthManager.getToken()}`;
+				
+				// Use fetch with proper authorization header instead of URL parameter
+				fetch(`/api/v1/influencers/download?filename=${encodeURIComponent(outputFile)}`, {
+					method: 'GET',
+					headers: {
+						...window.authManager.getAuthHeaders()
+					}
+				})
+				.then(response => {
+					if (!response.ok) {
+						throw new Error('Download failed');
+					}
+					return response.blob();
+				})
+				.then(blob => {
+					// Create download link
+					const url = window.URL.createObjectURL(blob);
+					const a = document.createElement('a');
+					a.style.display = 'none';
+					a.href = url;
+					a.download = outputFile;
+					document.body.appendChild(a);
+					a.click();
+					window.URL.revokeObjectURL(url);
+					document.body.removeChild(a);
+				})
+				.catch(error => {
+					console.error('Download error:', error);
+					alert('Failed to download file. Please try again.');
+				});
 			}
 		}
 
