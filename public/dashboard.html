@@ -708,21 +708,35 @@
 		
 		function updateAuthUI() {
 			const loginSection = document.getElementById('loginSection');
-			const userSection = document.getElementById('userSection');
 			
 			if (window.authManager.isAuthenticated()) {
-				loginSection.style.display = 'none';
-				userSection.style.display = 'block';
+				if (loginSection) {
+					loginSection.style.display = 'none';
+				}
 				
 				const userInfo = window.authManager.getUser();
 				if (userInfo) {
-					document.getElementById('userDisplayName').textContent = userInfo.username || 'User';
-					document.getElementById('userEmail').textContent = userInfo.email || 'user@example.com';
+					// Update navbar user info
+					const navUserEmail = document.getElementById('nav-user-email');
+					const userEmail = document.getElementById('user-email');
+					const userRole = document.getElementById('user-role');
+					const userSubscription = document.getElementById('user-subscription');
+					
+					if (navUserEmail) navUserEmail.textContent = userInfo.email;
+					if (userEmail) userEmail.textContent = userInfo.email;
+					if (userRole) userRole.textContent = userInfo.role || 'User';
+					if (userSubscription) userSubscription.textContent = userInfo.subscription || 'Free';
 				}
 			} else {
-				loginSection.style.display = 'block';
-				userSection.style.display = 'none';
+				if (loginSection) {
+					loginSection.style.display = 'block';
+				}
 			}
+		}
+		
+		function handleLogout() {
+			window.authManager.logout();
+			window.location.href = 'login.html';
 		}
 		
 		function handleFileSelect(event) {

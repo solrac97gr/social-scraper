@@ -35,22 +35,29 @@ const DashboardAuthManager = {
     
     updateAuthUI() {
         const loginSection = document.getElementById('loginSection');
-        const userSection = document.getElementById('userSection');
-        const userDisplayName = document.getElementById('userDisplayName');
-        const userEmail = document.getElementById('userEmail');
         
         if (this.isLoggedIn()) {
             const userInfo = this.getUserInfo();
-            loginSection.style.display = 'none';
-            userSection.style.display = 'block';
+            if (loginSection) {
+                loginSection.style.display = 'none';
+            }
             
             if (userInfo) {
-                userDisplayName.textContent = userInfo.username || 'User';
-                userEmail.textContent = userInfo.email || '';
+                // Update navbar user info if elements exist
+                const navUserEmail = document.getElementById('nav-user-email');
+                const userEmail = document.getElementById('user-email');
+                const userRole = document.getElementById('user-role');
+                const userSubscription = document.getElementById('user-subscription');
+                
+                if (navUserEmail) navUserEmail.textContent = userInfo.email;
+                if (userEmail) userEmail.textContent = userInfo.email;
+                if (userRole) userRole.textContent = userInfo.role || 'User';
+                if (userSubscription) userSubscription.textContent = userInfo.subscription || 'Free';
             }
         } else {
-            loginSection.style.display = 'block';
-            userSection.style.display = 'none';
+            if (loginSection) {
+                loginSection.style.display = 'block';
+            }
         }
     },
     
