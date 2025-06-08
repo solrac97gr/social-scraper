@@ -43,13 +43,13 @@ func (h *Handlers) LoginUserHandler(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"token": token,
 		"user": fiber.Map{
-			"id":           user.ID,
-			"email":        user.Email,
-			"role":         user.Role,
-			"subscription": user.Subscription,
+			"id":               user.ID,
+			"email":            user.Email,
+			"role":             user.Role,
+			"subscription":     user.Subscription,
 			"profile_complete": user.ProfileComplete,
-			"created_at":   user.CreatedAt,
-			"updated_at":   user.UpdatedAt,
+			"created_at":       user.CreatedAt,
+			"updated_at":       user.UpdatedAt,
 		},
 	})
 }
