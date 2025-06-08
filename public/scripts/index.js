@@ -350,7 +350,26 @@ document.getElementById('uploadForm').addEventListener('submit', async function(
     document.getElementById('loader').style.display = 'block';
     document.getElementById('uploadForm').classList.add('animate__animated', 'animate__bounceOut');
 
-    var formData = new FormData(this);
+    var formData = new FormData();
+    
+    // Add input based on current mode
+    if (currentInputMode === 'file') {
+        const fileInput = document.getElementById('fileInput');
+        if (fileInput.files.length === 0) {
+            alert('Please select a file');
+            document.getElementById('loader').style.display = 'none';
+            return;
+        }
+        formData.append('file', fileInput.files[0]);
+    } else {
+        const textInput = document.getElementById('linkTextInput');
+        if (!textInput.value.trim()) {
+            alert('Please enter some links');
+            document.getElementById('loader').style.display = 'none';
+            return;
+        }
+        formData.append('textInput', textInput.value.trim());
+    }
 
     try {
         // Call the new endpoint to get the estimated time
@@ -367,14 +386,14 @@ document.getElementById('uploadForm').addEventListener('submit', async function(
         updateLoaderText(estimateData.estimatedTime);
         startCountdown(estimateData.estimatedTime);
 
-        // Proceed with the file upload
+        // Proceed with the upload/analysis
         const uploadResponse = await authenticatedFetch('/api/v1/influencers/upload', {
             method: 'POST',
             body: formData
         });
         
         if (!uploadResponse.ok) {
-            throw new Error('Upload failed');
+            throw new Error('Upload/analysis failed');
         }
         
         const uploadData = await uploadResponse.json();
@@ -516,6 +535,68 @@ function clearFile() {
     if (uploadText) uploadText.textContent = 'Drag and drop your Excel file here, or click to browse';
     if (uploadArea) uploadArea.classList.remove('file-selected');
 }
+
+// Input mode management
+let currentInputMode = 'file'; // 'file' or 'text'
+
+function switchToFileUpload() {
+    currentInputMode = 'file';
+    document.getElementById('fileUploadBtn').classList.add('active');
+    document.getElementById('textInputBtn').classList.remove('active');
+    document.getElementById('fileUploadMode').style.display = 'block';
+    document.getElementById('textInputMode').style.display = 'none';
+    
+    // Manage required attributes
+    const fileInput = document.getElementById('fileInput');
+    const textInput = document.getElementById('linkTextInput');
+    if (fileInput) fileInput.required = true;
+    if (textInput) textInput.required = false;
+    
+    // Update submit button state
+    updateSubmitButtonState();
+}
+
+function switchToTextInput() {
+    currentInputMode = 'text';
+    document.getElementById('textInputBtn').classList.add('active');
+    document.getElementById('fileUploadBtn').classList.remove('active');
+    document.getElementById('fileUploadMode').style.display = 'none';
+    document.getElementById('textInputMode').style.display = 'block';
+    
+    // Manage required attributes
+    const fileInput = document.getElementById('fileInput');
+    const textInput = document.getElementById('linkTextInput');
+    if (fileInput) fileInput.required = false;
+    if (textInput) textInput.required = true;
+    
+    // Update submit button state
+    updateSubmitButtonState();
+}
+
+function updateSubmitButtonState() {
+    const submitBtn = document.getElementById('submitBtn');
+    const fileInput = document.getElementById('fileInput');
+    const textInput = document.getElementById('linkTextInput');
+    
+    if (currentInputMode === 'file') {
+        submitBtn.disabled = !fileInput.files.length;
+    } else {
+        submitBtn.disabled = !textInput.value.trim();
+    }
+}
+
+// Add event listener for text input
+document.addEventListener('DOMContentLoaded', function() {
+    const textInput = document.getElementById('linkTextInput');
+    if (textInput) {
+        textInput.addEventListener('input', updateSubmitButtonState);
+    }
+    
+    // Initialize required attributes based on default mode
+    const fileInput = document.getElementById('fileInput');
+    if (fileInput) fileInput.required = true; // Default is file mode
+    if (textInput) textInput.required = false;
+});
 
 // Initialize authentication UI and event handlers
 document.addEventListener('DOMContentLoaded', function() {

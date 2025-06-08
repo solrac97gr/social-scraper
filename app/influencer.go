@@ -41,9 +41,13 @@ func NewInfluencerApp(influencersRepository database.InfluencerRepository, fm fi
 
 // Run processes the input file and generates the output file
 func (a *InfluencerApp) Run(userId string, inputFile string, outputFile string) [][]string {
-	// Read links from input file
-	links := a.fileManager.ReadLinksFromExcel(inputFile)
+	// Read links from input file (auto-detects file type: Excel, CSV, or text)
+	links := a.fileManager.ReadLinksFromFile(inputFile)
+	return a.processLinks(userId, links, outputFile)
+}
 
+// processLinks is a common method to process links regardless of input source
+func (a *InfluencerApp) processLinks(userId string, links []string, outputFile string) [][]string {
 	// Create a slice to store results in order
 	orderedResults := make([][]string, 0, len(links)+1)
 	// Add header row

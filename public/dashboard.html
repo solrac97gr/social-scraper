@@ -182,6 +182,49 @@
 			color: white;
 		}
 		
+		/* Text Input Styles */
+		.text-input-area {
+			border: 2px solid #007bff;
+			border-radius: 15px;
+			padding: 2rem;
+			background: linear-gradient(135deg, rgba(0,123,255,0.05), rgba(0,86,179,0.05));
+		}
+		
+		.text-input-area textarea {
+			border: 2px solid #e9ecef;
+			border-radius: 10px;
+			padding: 1rem;
+			font-size: 1rem;
+			transition: all 0.3s ease;
+		}
+		
+		.text-input-area textarea:focus {
+			border-color: #007bff;
+			box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+		}
+		
+		.btn-group .btn {
+			border-radius: 25px !important;
+			padding: 0.75rem 1.5rem;
+			font-weight: 600;
+			transition: all 0.3s ease;
+		}
+		
+		.btn-group .btn:first-child {
+			border-top-right-radius: 0 !important;
+			border-bottom-right-radius: 0 !important;
+		}
+		
+		.btn-group .btn:last-child {
+			border-top-left-radius: 0 !important;
+			border-bottom-left-radius: 0 !important;
+		}
+		
+		.btn-group .btn.active {
+			background: linear-gradient(135deg, #007bff, #0056b3);
+			border-color: #007bff;
+		}
+		
 		.database-link {
 			position: absolute;
 			top: 20px;
@@ -488,37 +531,84 @@
 					<i class="fas fa-cloud-upload-alt"></i> Upload Your Channel List
 				</h2>
 				
-				<form id="uploadForm" enctype="multipart/form-data">
-					<div class="upload-area" id="uploadArea">
-						<div class="upload-icon">
-							<i class="fas fa-file-excel"></i>
-						</div>
-						<div class="upload-text" id="uploadText">
-							Drag and drop your Excel file here, or click to browse
-						</div>
-						<p class="text-muted mb-3" id="uploadHint">
-							Supported formats: XLSX, XLS • Max size: 10MB
-						</p>
-						<button type="button" class="btn upload-btn">
-							<i class="fas fa-folder-open"></i> <span id="browseText">Choose File</span>
+				<!-- Input Type Toggle -->
+				<div class="text-center mb-4">
+					<div class="btn-group" role="group" aria-label="Input type selection">
+						<button type="button" class="btn btn-outline-primary active" id="fileUploadBtn" onclick="switchToFileUpload()">
+							<i class="fas fa-file-upload"></i> File Upload
 						</button>
-						<input type="file" id="fileInput" class="file-input" accept=".xlsx,.xls" required>
+						<button type="button" class="btn btn-outline-primary" id="textInputBtn" onclick="switchToTextInput()">
+							<i class="fas fa-keyboard"></i> Text Input
+						</button>
+					</div>
+				</div>
+				
+				<form id="uploadForm" enctype="multipart/form-data">
+					<!-- File Upload Section -->
+					<div class="upload-mode" id="fileUploadMode">
+						<div class="upload-area" id="uploadArea">
+							<div class="upload-icon">
+								<i class="fas fa-file-excel"></i>
+							</div>
+							<div class="upload-text" id="uploadText">
+								Drag and drop your Excel or CSV file here, or click to browse
+							</div>
+							<p class="text-muted mb-3" id="uploadHint">
+								Supported formats: XLSX, XLS, CSV • Max size: 10MB
+							</p>
+							<button type="button" class="btn upload-btn">
+								<i class="fas fa-folder-open"></i> <span id="browseText">Choose File</span>
+							</button>
+							<input type="file" id="fileInput" class="file-input" accept=".xlsx,.xls,.csv" required>
+						</div>
+						
+						<div class="file-info" id="fileInfo">
+							<div class="d-flex justify-content-between align-items-center">
+								<div>
+									<div class="file-name" id="fileName"></div>
+									<div class="file-size" id="fileSize"></div>
+								</div>
+								<button type="button" class="btn btn-sm btn-outline-danger" onclick="clearFile()">
+									<i class="fas fa-times"></i>
+								</button>
+							</div>
+						</div>
 					</div>
 					
-					<div class="file-info" id="fileInfo">
-						<div class="d-flex justify-content-between align-items-center">
-							<div>
-								<div class="file-name" id="fileName"></div>
-								<div class="file-size" id="fileSize"></div>
+					<!-- Text Input Section -->
+					<div class="upload-mode" id="textInputMode" style="display: none;">
+						<div class="text-input-area">
+							<div class="form-group">
+								<label for="linkTextInput" class="font-weight-bold">
+									<i class="fas fa-link"></i> Enter Social Media Links
+								</label>
+								<textarea 
+									class="form-control" 
+									id="linkTextInput" 
+									rows="8" 
+									placeholder="Enter social media links separated by commas, for example:
+https://t.me/channel1, https://vk.com/channel2, https://instagram.com/channel3, https://rutube.ru/channel/channel4, https://youtube.com/channel5
+
+You can also paste links line by line or separate them with commas."
+									style="resize: vertical; min-height: 200px;"
+									required="false"
+								></textarea>
+								<small class="form-text text-muted">
+									<i class="fas fa-info-circle"></i> 
+									Supported platforms: Telegram, VK, Instagram, RuTube, YouTube. 
+									Links can be separated by commas, spaces, or new lines.
+								</small>
 							</div>
-							<button type="button" class="btn btn-sm btn-outline-danger" onclick="clearFile()">
-								<i class="fas fa-times"></i>
-							</button>
 						</div>
 					</div>
 					
 					<div class="text-center mt-4">
 						<button type="submit" class="btn upload-btn" id="submitBtn" disabled>
+							<i class="fas fa-rocket"></i> <span id="startAnalysisText">Start Analysis</span>
+						</button>
+					</div>
+				</form>
+			</div>
 							<i class="fas fa-rocket"></i> <span id="startAnalysisText">Start Analysis</span>
 						</button>
 					</div>

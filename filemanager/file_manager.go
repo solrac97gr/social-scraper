@@ -1,8 +1,10 @@
 package filemanager
 
 import (
-	"fmt"
+	"encoding/csv"
 	"log"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/xuri/excelize/v2"
@@ -11,6 +13,9 @@ import (
 // FileManager defines the interface for file operations
 type FileManager interface {
 	ReadLinksFromExcel(filePath string) []string
+	ReadLinksFromFile(filePath string) []string // Generic method that detects file type
+	ReadLinksFromCSV(filePath string) []string
+	ReadLinksFromText(content string) []string
 	SaveResultsToExcel(data [][]string, outputPath string)
 	EstimateProcessingTime(filePath string) (int, error)
 }
@@ -61,6 +66,89 @@ func (fm *FileManagerImpl) ReadLinksFromExcel(filePath string) []string {
 
 	if len(links) == 0 {
 		log.Fatal("No valid links found in the Excel file")
+	}
+
+	return links
+}
+
+// ReadLinksFromFile is a generic method that detects file type and reads links accordingly
+func (fm *FileManagerImpl) ReadLinksFromFile(filePath string) []string {
+	ext := strings.ToLower(filepath.Ext(filePath))
+
+	// Check if it's a text file (for text input handling)
+	if strings.Contains(filePath, "_text_input.txt") {
+		// Read file content and treat as text input
+		content, err := os.ReadFile(filePath)
+		if err != nil {
+			log.Fatalf("Failed to read text file: %v", err)
+		}
+		return fm.ReadLinksFromText(string(content))
+	}
+
+	switch ext {
+	case ".xlsx", ".xls":
+		return fm.ReadLinksFromExcel(filePath)
+	case ".csv":
+		return fm.ReadLinksFromCSV(filePath)
+	default:
+		log.Fatalf("Unsupported file format: %s. Supported formats: .xlsx, .xls, .csv", ext)
+		return nil
+	}
+}
+
+// ReadLinksFromCSV reads links from a CSV file
+func (fm *FileManagerImpl) ReadLinksFromCSV(filePath string) []string {
+	file, err := os.Open(filePath)
+	if err != nil {
+		log.Fatalf("Failed to open CSV file: %v", err)
+	}
+	defer file.Close()
+
+	reader := csv.NewReader(file)
+	records, err := reader.ReadAll()
+	if err != nil {
+		log.Fatalf("Failed to read CSV file: %v", err)
+	}
+
+	links := make([]string, 0)
+
+	// Extract links from CSV records
+	for _, record := range records {
+		for _, cell := range record {
+			if strings.Contains(cell, "t.me/") || strings.Contains(cell, "telegram.me/") ||
+				strings.Contains(cell, "rutube.ru/") || strings.Contains(cell, "vk.com/") ||
+				strings.Contains(cell, "instagram.com/") || strings.Contains(cell, "youtube.com/") {
+				links = append(links, strings.TrimSpace(cell))
+			}
+		}
+	}
+
+	if len(links) == 0 {
+		log.Fatal("No valid links found in the CSV file")
+	}
+
+	return links
+}
+
+// ReadLinksFromText reads links from comma-separated text input
+func (fm *FileManagerImpl) ReadLinksFromText(content string) []string {
+	// Split by various separators: comma, newline, space
+	content = strings.ReplaceAll(content, "\n", ",")
+	content = strings.ReplaceAll(content, " ", ",")
+	rawLinks := strings.Split(content, ",")
+	links := make([]string, 0)
+
+	for _, link := range rawLinks {
+		trimmed := strings.TrimSpace(link)
+		if trimmed != "" && (strings.Contains(trimmed, "t.me/") || strings.Contains(trimmed, "telegram.me/") ||
+			strings.Contains(trimmed, "rutube.ru/") || strings.Contains(trimmed, "vk.com/") ||
+			strings.Contains(trimmed, "instagram.com/") || strings.Contains(trimmed, "youtube.com/")) {
+			links = append(links, trimmed)
+		}
+	}
+
+	if len(links) == 0 {
+		log.Fatal("No valid links found in the text input")
 	}
 
 	return links
@@ -126,45 +214,24 @@ var (
 
 // EstimateProcessingTime estimates the processing time based on the number of links
 func (fm *FileManagerImpl) EstimateProcessingTime(filePath string) (int, error) {
-	f, err := excelize.OpenFile(filePath)
-	if err != nil {
-		return 0, err
-	}
-	defer f.Close()
+	// Use the universal file reader to get links count
+	links := fm.ReadLinksFromFile(filePath)
 
-	// Get all sheet names
-	sheets := f.GetSheetList()
-	if len(sheets) == 0 {
-		return 0, fmt.Errorf("no sheets found in Excel file")
-	}
-
-	// Get all rows in the first sheet
-	rows, err := f.GetRows(sheets[0])
-	if err != nil {
-		return 0, err
-	}
-
-	linkCount := 0
-	for _, row := range rows {
-		for _, cell := range row {
-			if cell != "" && (len(cell) > 4 && cell[:4] == "http") {
-				if strings.Contains(cell, "vk.com/") {
-					linkCount += estimationPerLink["vk"]
-				} else if strings.Contains(cell, "t.me/") || strings.Contains(cell, "telegram.me/") {
-					linkCount += estimationPerLink["tg"]
-				} else if strings.Contains(cell, "instagram.com/") {
-					linkCount += estimationPerLink["ig"]
-				} else if strings.Contains(cell, "rutube.ru/") {
-					linkCount += estimationPerLink["rt"]
-				} else {
-					linkCount += 0 // Default estimation for unknown links
-				}
-			}
+	// Estimate based on platform type
+	estimatedTime := 0
+	for _, link := range links {
+		if strings.Contains(link, "vk.com/") {
+			estimatedTime += estimationPerLink["vk"]
+		} else if strings.Contains(link, "t.me/") || strings.Contains(link, "telegram.me/") {
+			estimatedTime += estimationPerLink["tg"]
+		} else if strings.Contains(link, "instagram.com/") {
+			estimatedTime += estimationPerLink["ig"]
+		} else if strings.Contains(link, "rutube.ru/") {
+			estimatedTime += estimationPerLink["rt"]
+		} else {
+			estimatedTime += 1 // Default estimation for unknown links
 		}
 	}
-
-	// Estimate the processing time (1 second per link)
-	estimatedTime := linkCount
 
 	return estimatedTime, nil
 }
