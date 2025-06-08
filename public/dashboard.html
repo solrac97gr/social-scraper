@@ -591,7 +591,6 @@ https://t.me/channel1, https://vk.com/channel2, https://instagram.com/channel3, 
 
 You can also paste links line by line or separate them with commas."
 									style="resize: vertical; min-height: 200px;"
-									required="false"
 								></textarea>
 								<small class="form-text text-muted">
 									<i class="fas fa-info-circle"></i> 
@@ -728,8 +727,12 @@ You can also paste links line by line or separate them with commas."
 			const fileInput = document.getElementById('fileInput');
 			const uploadArea = document.getElementById('uploadArea');
 			const uploadForm = document.getElementById('uploadForm');
+			const linkTextInput = document.getElementById('linkTextInput');
 
 			fileInput.addEventListener('change', handleFileSelect);
+			
+			// Text input handling
+			linkTextInput.addEventListener('input', handleTextInput);
 			
 			// Drag and drop functionality
 			uploadArea.addEventListener('dragover', handleDragOver);
@@ -790,6 +793,16 @@ You can also paste links line by line or separate them with commas."
 			window.location.href = 'login.html';
 		}
 		
+		function handleTextInput(event) {
+			const textInput = event.target;
+			const submitBtn = document.getElementById('submitBtn');
+			
+			// Only enable submit button if there's text and we're in text input mode
+			if (window.currentInputMode === 'text') {
+				submitBtn.disabled = !textInput.value.trim();
+			}
+		}
+		
 		function handleFileSelect(event) {
 			const file = event.target.files[0];
 			if (file) {
@@ -848,10 +861,16 @@ You can also paste links line by line or separate them with commas."
 		async function handleFormSubmit(event) {
 			event.preventDefault();
 			
+			// Use the shared currentInputMode variable
 			const fileInput = document.getElementById('fileInput');
+			const textInput = document.getElementById('linkTextInput');
 			
-			if (!fileInput.files[0]) {
+			// Validate inputs based on current mode
+			if (window.currentInputMode === 'file' && !fileInput.files[0]) {
 				alert('Please select a file first');
+				return;
+			} else if (window.currentInputMode === 'text' && !textInput.value.trim()) {
+				alert('Please enter some social media links');
 				return;
 			}
 			
@@ -860,29 +879,47 @@ You can also paste links line by line or separate them with commas."
 				processingStartTime = Date.now();
 
 				if (!window.authManager.isAuthenticated()) {
-					throw new Error('You must be logged in to upload files.');
+					throw new Error('You must be logged in to analyze channels.');
 				}
 				
-				// Create FormData for estimate request
-				const estimateFormData = new FormData();
-				estimateFormData.append('file', fileInput.files[0]);
+				// Create FormData for API requests
+				const formData = new FormData();
 				
-				// Get estimated time first
-				const estimateResponse = await authenticatedFetch('/api/v1/influencers/estimate-time', {
-					method: 'POST',
-					body: estimateFormData
-				});
-				const estimateData = await estimateResponse.json();
-				startProgressSimulation(estimateData.estimatedTime);
+				if (window.currentInputMode === 'file') {
+					// Handle file upload mode
+					formData.append('file', fileInput.files[0]);
+					
+					// Get estimated time first
+					const estimateResponse = await authenticatedFetch('/api/v1/influencers/estimate-time', {
+						method: 'POST',
+						body: formData
+					});
+					const estimateData = await estimateResponse.json();
+					startProgressSimulation(estimateData.estimatedTime);
+					
+					// Create FormData for upload request (reusing the same formData)
+				} else {
+					// Handle text input mode
+					// Convert text input to a CSV file
+					const links = textInput.value.trim().split(/[\n,]+/).map(link => link.trim()).filter(link => link);
+					const csvContent = "Link\n" + links.join('\n');
+					const blob = new Blob([csvContent], { type: 'text/csv' });
+					const file = new File([blob], "links.csv", { type: "text/csv" });
+					formData.append('file', file);
+					
+					// Get estimated time (same endpoint works for both modes)
+					const estimateResponse = await authenticatedFetch('/api/v1/influencers/estimate-time', {
+						method: 'POST',
+						body: formData
+					});
+					const estimateData = await estimateResponse.json();
+					startProgressSimulation(estimateData.estimatedTime);
+				}
 				
-				// Create FormData for upload request
-				const uploadFormData = new FormData();
-				uploadFormData.append('file', fileInput.files[0]);
-				
-				// Process file
+				// Process file - use the same formData we already prepared
 				const response = await authenticatedFetch('/api/v1/influencers/upload', {
 					method: 'POST',
-					body: uploadFormData
+					body: formData
 				});
 				
 				const data = await response.json();

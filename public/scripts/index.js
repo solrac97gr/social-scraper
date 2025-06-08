@@ -541,10 +541,10 @@ function clearFile() {
 }
 
 // Input mode management
-let currentInputMode = 'file'; // 'file' or 'text'
+window.currentInputMode = 'file'; // 'file' or 'text'
 
 function switchToFileUpload() {
-    currentInputMode = 'file';
+    window.currentInputMode = 'file';
     document.getElementById('fileUploadBtn').classList.add('active');
     document.getElementById('textInputBtn').classList.remove('active');
     document.getElementById('fileUploadMode').style.display = 'block';
@@ -561,7 +561,7 @@ function switchToFileUpload() {
 }
 
 function switchToTextInput() {
-    currentInputMode = 'text';
+    window.currentInputMode = 'text';
     document.getElementById('textInputBtn').classList.add('active');
     document.getElementById('fileUploadBtn').classList.remove('active');
     document.getElementById('fileUploadMode').style.display = 'none';
@@ -582,7 +582,7 @@ function updateSubmitButtonState() {
     const fileInput = document.getElementById('fileInput');
     const textInput = document.getElementById('linkTextInput');
     
-    if (currentInputMode === 'file') {
+    if (window.currentInputMode === 'file') {
         submitBtn.disabled = !fileInput.files.length;
     } else {
         submitBtn.disabled = !textInput.value.trim();
