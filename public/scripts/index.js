@@ -1,3 +1,159 @@
+// Authentication and JWT token management
+const AuthManager = {
+    getToken() {
+        return localStorage.getItem('authToken');
+    },
+    
+    getUserInfo() {
+        const userInfo = localStorage.getItem('userInfo');
+        return userInfo ? JSON.parse(userInfo) : null;
+    },
+    
+    isLoggedIn() {
+        return !!this.getToken();
+    },
+    
+    async logout() {
+        try {
+            // Call logout API if user is logged in
+            if (this.isLoggedIn()) {
+                await authenticatedFetch('/api/v1/users/logout', {
+                    method: 'POST'
+                });
+            }
+        } catch (error) {
+            console.warn('Logout API call failed:', error);
+        } finally {
+            // Always clear local storage regardless of API call success
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('userInfo');
+            localStorage.removeItem('rememberUser');
+            this.updateAuthUI();
+            window.location.reload();
+        }
+    },
+    
+    updateAuthUI() {
+        const loginSection = document.getElementById('loginSection');
+        const userSection = document.getElementById('userSection');
+        const userDisplayName = document.getElementById('userDisplayName');
+        const userEmail = document.getElementById('userEmail');
+        
+        if (this.isLoggedIn()) {
+            const userInfo = this.getUserInfo();
+            loginSection.style.display = 'none';
+            userSection.style.display = 'block';
+            
+            if (userInfo) {
+                userDisplayName.textContent = userInfo.id || 'User';
+                userEmail.textContent = userInfo.email || '';
+            }
+        } else {
+            loginSection.style.display = 'block';
+            userSection.style.display = 'none';
+        }
+    },
+    
+    async verifyToken() {
+        const token = this.getToken();
+        if (!token) return false;
+        
+        try {
+            const response = await fetch('/api/v1/influencers/health', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (!response.ok) {
+                this.logout();
+                return false;
+            }
+            
+            return true;
+        } catch (error) {
+            console.error('Token verification failed:', error);
+            this.logout();
+            return false;
+        }
+    },
+    
+    getAuthHeaders() {
+        const token = this.getToken();
+        return token ? {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        } : {
+            'Content-Type': 'application/json'
+        };
+    }
+};
+
+// Protected fetch function that includes JWT token
+async function authenticatedFetch(url, options = {}) {
+    if (!AuthManager.isLoggedIn()) {
+        throw new Error('Authentication required');
+    }
+    
+    const headers = {
+        ...AuthManager.getAuthHeaders(),
+        ...(options.headers || {})
+    };
+    
+    const response = await fetch(url, {
+        ...options,
+        headers
+    });
+    
+    if (response.status === 401) {
+        AuthManager.logout();
+        window.location.href = 'login.html';
+        throw new Error('Authentication expired');
+    }
+    
+    return response;
+}
+
+// Show authentication required modal
+function showAuthModal() {
+    const modalHtml = `
+        <div class="modal fade" id="authModal" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title">
+                            <i class="fas fa-lock"></i> Authentication Required
+                        </h5>
+                        <button type="button" class="close text-white" data-dismiss="modal">
+                            <span>&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <i class="fas fa-user-shield fa-3x text-primary mb-3"></i>
+                        <h5>Please log in to continue</h5>
+                        <p class="text-muted">You need to be logged in to use the Social Scraper features.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <a href="login.html" class="btn btn-primary">
+                            <i class="fas fa-sign-in-alt"></i> Login
+                        </a>
+                        <a href="register.html" class="btn btn-outline-primary">
+                            <i class="fas fa-user-plus"></i> Register
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    $('#authModal').modal('show');
+    
+    $('#authModal').on('hidden.bs.modal', function() {
+        document.getElementById('authModal').remove();
+    });
+}
+
 const translations = {
     en: {
         title: "Social Scraper 🚀",
@@ -155,63 +311,143 @@ function clearFilters() {
     applyFilters();
 }
 
-document.getElementById('uploadForm').addEventListener('submit', function(event) {
+document.getElementById('uploadForm').addEventListener('submit', async function(event) {
     event.preventDefault();
+    
+    // Check authentication first
+    if (!AuthManager.isLoggedIn()) {
+        showAuthModal();
+        return;
+    }
+    
+    // Verify token is still valid
+    if (!(await AuthManager.verifyToken())) {
+        showAuthModal();
+        return;
+    }
+    
     document.getElementById('loader').style.display = 'block';
     document.getElementById('uploadForm').classList.add('animate__animated', 'animate__bounceOut');
 
     var formData = new FormData(this);
 
-    // Call the new endpoint to get the estimated time
-    fetch('/estimate-time', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        updateLoaderText(data.estimatedTime);
-        startCountdown(data.estimatedTime);
-
-        // Proceed with the file upload
-        fetch('/upload', {
+    try {
+        // Call the new endpoint to get the estimated time
+        const estimateResponse = await authenticatedFetch('/api/v1/influencers/estimate-time', {
             method: 'POST',
             body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            document.getElementById('loader').style.display = 'none';
-            document.getElementById('resultsContainer').style.display = 'block';
-
-            const resultsTableBody = document.getElementById('resultsTableBody');
-            resultsTableBody.innerHTML = '';
-
-            // remove the first row (header)
-            data.results.shift();
-
-            data.results.forEach(result => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${result[0]}</td>
-                    <td class="count-up" data-count="${result[1]}">${result[1]}</td>
-                    <td><a href="${result[2]}" target="_blank">${result[2]}</a></td>
-                    <td><span class="badge badge-${result[3].toLowerCase()}">${result[3]}</span></td>
-                    <td>${result[4]}</td
-                `;
-                resultsTableBody.appendChild(row);
-            });
-
-            document.getElementById('downloadButton').addEventListener('click', function() {
-                window.location.href = `/download?filename=${data.outputFile}`;
-            });
-        })
-        .catch(() => {
-            alert('There was an error processing your file.');
-            document.getElementById('loader').style.display = 'none';
         });
-    })
-    .catch(() => {
-        alert('There was an error estimating the processing time.');
+        
+        if (!estimateResponse.ok) {
+            throw new Error('Failed to estimate processing time');
+        }
+        
+        const estimateData = await estimateResponse.json();
+        updateLoaderText(estimateData.estimatedTime);
+        startCountdown(estimateData.estimatedTime);
+
+        // Proceed with the file upload
+        const uploadResponse = await authenticatedFetch('/api/v1/influencers/upload', {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (!uploadResponse.ok) {
+            throw new Error('Upload failed');
+        }
+        
+        const uploadData = await uploadResponse.json();
         document.getElementById('loader').style.display = 'none';
-    });
+        document.getElementById('resultsContainer').style.display = 'block';
+
+        const resultsTableBody = document.getElementById('resultsTableBody');
+        resultsTableBody.innerHTML = '';
+
+        // remove the first row (header)
+        uploadData.results.shift();
+
+        uploadData.results.forEach(result => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${result[0]}</td>
+                <td class="count-up" data-count="${result[1]}">${result[1]}</td>
+                <td><a href="${result[2]}" target="_blank">${result[2]}</a></td>
+                <td><span class="badge badge-${result[3].toLowerCase()}">${result[3]}</span></td>
+                <td>${result[4]}</td>
+            `;
+            resultsTableBody.appendChild(row);
+        });
+
+        document.getElementById('downloadButton').addEventListener('click', function() {
+            const token = AuthManager.getToken();
+            const downloadUrl = `/api/v1/influencers/download?filename=${uploadData.outputFile}`;
+            
+            // Create a temporary link with auth header for download
+            fetch(downloadUrl, {
+                headers: AuthManager.getAuthHeaders()
+            })
+            .then(response => response.blob())
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = uploadData.outputFile;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            })
+            .catch(error => {
+                console.error('Download failed:', error);
+                alert('Download failed. Please try again.');
+            });
+        });
+        
+    } catch (error) {
+        console.error('Upload error:', error);
+        if (error.message === 'Authentication required' || error.message === 'Authentication expired') {
+            showAuthModal();
+        } else {
+            alert('There was an error processing your file: ' + error.message);
+        }
+        document.getElementById('loader').style.display = 'none';
+    }
 });
+
+// Initialize authentication UI and event handlers
+document.addEventListener('DOMContentLoaded', function() {
+    // Update authentication UI
+    AuthManager.updateAuthUI();
+    
+    // Verify token on page load
+    AuthManager.verifyToken();
+    
+    // Set up logout handler
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            AuthManager.logout();
+        });
+    }
+    
+    // Load user analyses if logged in
+    if (AuthManager.isLoggedIn()) {
+        loadUserAnalyses();
+    }
+});
+
+// Function to load user analyses
+async function loadUserAnalyses() {
+    try {
+        const response = await authenticatedFetch('/api/v1/influencers/analyses?page=1&limit=5');
+        if (response.ok) {
+            const data = await response.json();
+            // You can add code here to show recent analyses in a dashboard
+            console.log('Recent analyses:', data);
+        }
+    } catch (error) {
+        console.error('Failed to load user analyses:', error);
+    }
+}
 

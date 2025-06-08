@@ -16,6 +16,7 @@ type JWTConfig struct {
 
 type AuthMiddleware struct {
 	config *JWTConfig
+	repo   database.UserRepository
 }
 
 type Claims struct {
@@ -26,12 +27,13 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-func NewAuthMiddleware(config *JWTConfig) (*AuthMiddleware, error) {
+func NewAuthMiddleware(config *JWTConfig, userRepo database.UserRepository) (*AuthMiddleware, error) {
 	if config == nil || config.Secret == "" {
 		return nil, fmt.Errorf("JWT config and secret are required")
 	}
 	return &AuthMiddleware{
 		config: config,
+		repo:   userRepo,
 	}, nil
 }
 
@@ -77,6 +79,23 @@ func (m *AuthMiddleware) WithJWT() fiber.Handler {
 		}
 
 		if !token.Valid {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": "Invalid token",
+			})
+		}
+
+		// Validate token exists and is valid in database
+		userToken, err := m.repo.GetUserTokenByToken(tokenString)
+		if err != nil {
+			log.Printf("Token validation error: %v", err)
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": "Token not found or expired",
+			})
+		}
+
+		// Verify token belongs to the user in claims
+		if userToken.UserID != claims.UserID {
+			log.Printf("Token user ID mismatch: token=%s, claims=%s", userToken.UserID, claims.UserID)
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": "Invalid token",
 			})

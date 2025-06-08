@@ -199,6 +199,24 @@
 
 		<!-- Header -->
 		<div class="database-header animate__animated animate__fadeInDown">
+			<!-- Authentication Navigation -->
+			<div style="position: absolute; top: 20px; right: 20px; z-index: 100;">
+				<div class="dropdown">
+					<button class="btn btn-outline-light dropdown-toggle" type="button" id="userDropdown" data-toggle="dropdown">
+						<i class="fas fa-user"></i> <span id="userDisplayName">User</span>
+					</button>
+					<div class="dropdown-menu dropdown-menu-right">
+						<h6 class="dropdown-header">
+							<i class="fas fa-envelope"></i> <span id="userEmail">user@example.com</span>
+						</h6>
+						<div class="dropdown-divider"></div>
+						<a class="dropdown-item" href="#" id="logoutBtn">
+							<i class="fas fa-sign-out-alt"></i> Logout
+						</a>
+					</div>
+				</div>
+			</div>
+			
 			<a href="index.html" class="back-btn">
 				<i class="fas fa-arrow-left"></i> Back to Home
 			</a>
@@ -332,15 +350,97 @@
 		let allAnalyses = [];
 		let filteredAnalyses = [];
 
+		// Authentication Manager (same as in index.js)
+		const AuthManager = {
+			getToken() {
+				return localStorage.getItem('authToken');
+			},
+			
+			getUserInfo() {
+				const userInfo = localStorage.getItem('userInfo');
+				return userInfo ? JSON.parse(userInfo) : null;
+			},
+			
+			isLoggedIn() {
+				return !!this.getToken();
+			},
+			
+			logout() {
+				localStorage.removeItem('authToken');
+				localStorage.removeItem('userInfo');
+				localStorage.removeItem('rememberUser');
+				window.location.href = 'login.html';
+			},
+			
+			getAuthHeaders() {
+				const token = this.getToken();
+				return token ? {
+					'Authorization': `Bearer ${token}`,
+					'Content-Type': 'application/json'
+				} : {
+					'Content-Type': 'application/json'
+				};
+			}
+		};
+
+		// Protected fetch function
+		async function authenticatedFetch(url, options = {}) {
+			if (!AuthManager.isLoggedIn()) {
+				window.location.href = 'login.html';
+				return;
+			}
+			
+			const headers = {
+				...AuthManager.getAuthHeaders(),
+				...(options.headers || {})
+			};
+			
+			const response = await fetch(url, {
+				...options,
+				headers
+			});
+			
+			if (response.status === 401) {
+				AuthManager.logout();
+				return;
+			}
+			
+			return response;
+		}
+
 		// Load data when page loads
 		document.addEventListener('DOMContentLoaded', function() {
+			// Check authentication first
+			if (!AuthManager.isLoggedIn()) {
+				window.location.href = 'login.html';
+				return;
+			}
+			
+			// Update user info in navigation
+			const userInfo = AuthManager.getUserInfo();
+			if (userInfo) {
+				document.getElementById('userDisplayName').textContent = userInfo.id || 'User';
+				document.getElementById('userEmail').textContent = userInfo.email || '';
+			}
+			
+			// Set up logout handler
+			document.getElementById('logoutBtn').addEventListener('click', function(e) {
+				e.preventDefault();
+				AuthManager.logout();
+			});
+			
 			loadAnalyses();
 		});
 
 		async function loadAnalyses() {
 			showLoading();
 			try {
-				const response = await fetch(`/api/v1/analyses?page=${currentPage}&limit=${currentPageSize}`);
+				const response = await authenticatedFetch(`/api/v1/influencers/analyses?page=${currentPage}&limit=${currentPageSize}`);
+				
+				if (!response) {
+					return; // Redirected to login
+				}
+				
 				const data = await response.json();
 				
 				if (data.error) {

@@ -25,5 +25,7 @@ type UserRepository interface {
 	GetUserByID(userID string) (*User, error)
 	GetUserByEmail(email string) (*User, error)
 	GetUserTokenByUserID(userID string) (*UserToken, error)
+	GetUserTokenByToken(token string) (*UserToken, error)
+	InvalidateToken(userID string) error
 	DeleteExpiredTokens() error
 }

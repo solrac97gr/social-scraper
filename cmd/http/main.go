@@ -74,7 +74,7 @@ func main() {
 
 	auth, err := middleware.NewAuthMiddleware(&middleware.JWTConfig{
 		Secret: config.JWTSecret,
-	})
+	}, userRepo)
 	if err != nil {
 		log.Fatalf("Error creating middlewares: %v", err)
 	}
@@ -90,6 +90,12 @@ func main() {
 
 	// Protected routes (JWT required)
 	apiv1Group := fiberApp.Group("/api/v1", auth.WithJWT())
+
+	// User routes that require authentication
+	userHandlers := apiv1Group.Group("/users")
+	userHandlers.Post("/logout", hdl.LogoutUserHandler)
+
+	// Influencer routes
 	influencersHandlers := apiv1Group.Group("/influencers")
 	influencersHandlers.Get("/health", hdl.HealthCheckHandler)
 	influencersHandlers.Post("/upload", hdl.UploadHandler)

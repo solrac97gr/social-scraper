@@ -158,3 +158,38 @@ func (u *UserMongoRepository) DeleteExpiredTokens() error {
 	_, err := collection.DeleteMany(ctx, filter)
 	return err
 }
+
+// GetUserTokenByToken implements UserRepository.
+func (u *UserMongoRepository) GetUserTokenByToken(token string) (*UserToken, error) {
+	ctx := context.Background()
+	collection := u.client.Database(u.config.UsersDBName).Collection(UserTokenCollectionName)
+	filter := bson.M{"token": token, "is_valid": true}
+	result := collection.FindOne(ctx, filter)
+
+	if result.Err() != nil {
+		return nil, result.Err()
+	}
+
+	var userToken UserToken
+	err := result.Decode(&userToken)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check if token is expired
+	if time.Now().After(userToken.ExpiresAt) {
+		return nil, errors.New("token is expired")
+	}
+
+	return &userToken, nil
+}
+
+// InvalidateToken implements UserRepository.
+func (u *UserMongoRepository) InvalidateToken(userID string) error {
+	ctx := context.Background()
+	collection := u.client.Database(u.config.UsersDBName).Collection(UserTokenCollectionName)
+	filter := bson.M{"user_id": userID}
+	update := bson.M{"$set": bson.M{"is_valid": false}}
+	_, err := collection.UpdateMany(ctx, filter, update)
+	return err
+}

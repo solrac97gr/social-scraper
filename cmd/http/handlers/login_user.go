@@ -23,19 +23,11 @@ func (h *Handlers) LoginUserHandler(c *fiber.Ctx) error {
 		})
 	}
 
-	// Authenticate the user
-	user, err := h.UsersApp.AuthenticateUser(credentials.Email, credentials.Password)
+	// Authenticate the user and generate token
+	token, user, err := h.UsersApp.LoginUser(credentials.Email, credentials.Password)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"error": err.Error(),
-		})
-	}
-
-	// Generate JWT token
-	token, err := h.UsersApp.GenerateToken(user)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to generate token",
 		})
 	}
 

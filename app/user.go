@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 	"github.com/solrac97gr/telegram-followers-checker/database"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -96,15 +97,63 @@ func (u *UserApp) SaveUserToken(userID string, token string) error {
 	if len(token) < 20 {
 		return errors.New("token must be at least 20 characters long")
 	}
+
+	// Generate a unique ID for the token
+	tokenID := uuid.New().String()
+
 	userToken := &database.UserToken{
-		ID:        userID,
+		ID:        tokenID,
+		UserID:    userID,
 		Token:     token,
 		IsValid:   true,                           // Assuming the token is valid when saved
 		CreatedAt: time.Now(),                     // You can set the current time here
-		ExpiresAt: time.Now().Add(72 * time.Hour), // Set the expiration time to 24 hours from now
+		ExpiresAt: time.Now().Add(24 * time.Hour), // Set the expiration time to 24 hours from now
 	}
 	return u.Repository.SaveUserToken(userToken)
 }
+
+// LoginUser authenticates user and generates a JWT token, storing it in database
+func (u *UserApp) LoginUser(email string, password string) (string, *database.User, error) {
+	// Authenticate the user
+	user, err := u.AuthenticateUser(email, password)
+	if err != nil {
+		return "", nil, err
+	}
+
+	// Invalidate any existing tokens for this user
+	_ = u.Repository.InvalidateToken(user.ID)
+
+	// Generate a new JWT token
+	token, err := u.GenerateToken(user)
+	if err != nil {
+		return "", nil, err
+	}
+
+	// Store the token in the database
+	err = u.SaveUserToken(user.ID, token)
+	if err != nil {
+		return "", nil, err
+	}
+
+	return token, user, nil
+}
+
+// LogoutUser invalidates the user's token
+func (u *UserApp) LogoutUser(userID string) error {
+	if userID == "" {
+		return ErrInvalidUserID
+	}
+	return u.Repository.InvalidateToken(userID)
+}
+
+// ValidateToken checks if a token is valid in the database
+func (u *UserApp) ValidateToken(tokenString string) (*database.UserToken, error) {
+	if tokenString == "" {
+		return nil, errors.New("token is required")
+	}
+	return u.Repository.GetUserTokenByToken(tokenString)
+}
+
 func (u *UserApp) SaveUserProfile(userID string, firstName string, lastName string, phoneNumber string, address string, profilePic string) error {
 	profile := &database.UserProfile{
 		ID:          userID,

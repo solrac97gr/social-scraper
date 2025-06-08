@@ -403,6 +403,34 @@
 
 		<!-- Header -->
 		<div class="modern-header animate__animated animate__fadeInDown">
+			<!-- Authentication Navigation -->
+			<div class="auth-nav" id="authNav" style="position: absolute; top: 1rem; right: 2rem; z-index: 100;">
+				<div id="loginSection" style="display: none;">
+					<a href="login.html" class="btn btn-outline-light me-2" style="margin-right: 0.5rem;">
+						<i class="fas fa-sign-in-alt"></i> Login
+					</a>
+					<a href="register.html" class="btn btn-light">
+						<i class="fas fa-user-plus"></i> Register
+					</a>
+				</div>
+				<div id="userSection" style="display: none;">
+					<div class="dropdown">
+						<button class="btn btn-outline-light dropdown-toggle" type="button" id="userDropdown" data-toggle="dropdown">
+							<i class="fas fa-user"></i> <span id="userDisplayName">User</span>
+						</button>
+						<div class="dropdown-menu dropdown-menu-right">
+							<h6 class="dropdown-header">
+								<i class="fas fa-envelope"></i> <span id="userEmail">user@example.com</span>
+							</h6>
+							<div class="dropdown-divider"></div>
+							<a class="dropdown-item" href="#" id="logoutBtn">
+								<i class="fas fa-sign-out-alt"></i> Logout
+							</a>
+						</div>
+					</div>
+				</div>
+			</div>
+			
 			<a href="database.html" class="database-link">
 				<i class="fas fa-database"></i> View Database
 			</a>
@@ -585,6 +613,54 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.1/umd/popper.min.js"></script>
 	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 	<script>
+		// Authentication Manager
+		const AuthManager = {
+			getToken() {
+				return localStorage.getItem('authToken');
+			},
+			
+			getUserInfo() {
+				const userInfo = localStorage.getItem('userInfo');
+				return userInfo ? JSON.parse(userInfo) : null;
+			},
+			
+			isLoggedIn() {
+				return !!this.getToken();
+			},
+			
+			logout() {
+				localStorage.removeItem('authToken');
+				localStorage.removeItem('userInfo');
+				localStorage.removeItem('rememberUser');
+				window.location.href = 'login.html';
+			},
+			
+			getAuthHeaders() {
+				const token = this.getToken();
+				return token ? {
+					'Authorization': `Bearer ${token}`
+				} : {};
+			}
+		};
+
+		// Protected fetch function
+		async function authenticatedFetch(url, options = {}) {
+			if (!AuthManager.isLoggedIn()) {
+				window.location.href = 'login.html';
+				return;
+			}
+			
+			const headers = {
+				...options.headers || {},
+				...AuthManager.getAuthHeaders()
+			};
+			
+			return fetch(url, {
+				...options,
+				headers
+			});
+		}
+		
 		// Global variables
 		let currentResults = [];
 		let filteredResults = [];
@@ -721,8 +797,35 @@
 			
 			// Download button
 			document.getElementById('downloadBtn').addEventListener('click', downloadResults);
-		}
 
+			// Set up authentication UI
+			updateAuthUI();
+			
+			// Add logout event listener
+			document.getElementById('logoutBtn')?.addEventListener('click', () => {
+				AuthManager.logout();
+			});
+		}
+		
+		function updateAuthUI() {
+			const loginSection = document.getElementById('loginSection');
+			const userSection = document.getElementById('userSection');
+			
+			if (AuthManager.isLoggedIn()) {
+				loginSection.style.display = 'none';
+				userSection.style.display = 'block';
+				
+				const userInfo = AuthManager.getUserInfo();
+				if (userInfo) {
+					document.getElementById('userDisplayName').textContent = userInfo.name || 'User';
+					document.getElementById('userEmail').textContent = userInfo.email || 'user@example.com';
+				}
+			} else {
+				loginSection.style.display = 'block';
+				userSection.style.display = 'none';
+			}
+		}
+		
 		function handleFileSelect(event) {
 			const file = event.target.files[0];
 			if (file) {
@@ -791,13 +894,17 @@
 			try {
 				showLoading();
 				processingStartTime = Date.now();
+
+				if (!AuthManager.isLoggedIn()) {
+					throw new Error('You must be logged in to upload files.');
+				}
 				
 				// Create FormData for estimate request
 				const estimateFormData = new FormData();
 				estimateFormData.append('file', fileInput.files[0]);
 				
 				// Get estimated time first
-				const estimateResponse = await fetch('/api/v1/estimate-time', {
+				const estimateResponse = await authenticatedFetch('/api/v1/influencers/estimate-time', {
 					method: 'POST',
 					body: estimateFormData
 				});
@@ -809,7 +916,7 @@
 				uploadFormData.append('file', fileInput.files[0]);
 				
 				// Process file
-				const response = await fetch('/api/v1/upload', {
+				const response = await authenticatedFetch('/api/v1/influencers/upload', {
 					method: 'POST',
 					body: uploadFormData
 				});
@@ -935,7 +1042,12 @@
 
 		function downloadResults() {
 			if (outputFile) {
-				window.location.href = `/api/v1/download?filename=${encodeURIComponent(outputFile)}`;
+				if (!AuthManager.isLoggedIn()) {
+					alert('You must be logged in to download results');
+					window.location.href = 'login.html';
+					return;
+				}
+				window.location.href = `/api/v1/influencers/download?filename=${encodeURIComponent(outputFile)}&token=${AuthManager.getToken()}`;
 			}
 		}
 
