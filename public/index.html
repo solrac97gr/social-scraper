@@ -817,7 +817,7 @@
 				
 				const userInfo = AuthManager.getUserInfo();
 				if (userInfo) {
-					document.getElementById('userDisplayName').textContent = userInfo.name || 'User';
+					document.getElementById('userDisplayName').textContent = userInfo.username || 'User';
 					document.getElementById('userEmail').textContent = userInfo.email || 'user@example.com';
 				}
 			} else {

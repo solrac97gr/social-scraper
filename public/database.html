@@ -419,7 +419,7 @@
 			// Update user info in navigation
 			const userInfo = AuthManager.getUserInfo();
 			if (userInfo) {
-				document.getElementById('userDisplayName').textContent = userInfo.id || 'User';
+				document.getElementById('userDisplayName').textContent = userInfo.username || 'User';
 				document.getElementById('userEmail').textContent = userInfo.email || '';
 			}
 			

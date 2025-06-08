@@ -75,7 +75,7 @@ func (u *UserApp) SaveUser(user string, email string, password string, confirmat
 	}
 
 	userObj := &database.User{
-		ID:              user,
+		Username:        user,
 		Email:           email,
 		Password:        HashPassword(password),
 		Role:            database.UserRole,         // Default role is User
