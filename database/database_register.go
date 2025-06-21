@@ -39,12 +39,14 @@ func NewInfluencerAnalysis(userID, channelName, link, platform string, followers
 		Link:           link,
 		Platform:       platform,
 		RegistrationStatus: func(rs string) Status {
-			if rs == "registered 🟢" {
+			switch rs {
+			case "registered 🟢":
 				return Registered
-			} else if rs == "not registered 🔴" {
+			case "not registered 🔴":
 				return NotRegistered
+			default:
+				return NotApply // Default to NotApply if not registered or not applicable
 			}
-			return NotApply // Default to NotApply if not registered or not applicable
 		}(registrationStatus),
 		ExpirationDate: time.Now().Add(30 * 24 * time.Hour), // Default expiration date set to 15 days from now
 		CreatedAt:      time.Now(),

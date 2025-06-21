@@ -56,7 +56,11 @@ func (re *RutubeExtractor) Extract(link string) extractor.ChannelInfo {
 			OriginalLink:   link,
 		}
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			log.Printf("Failed to close response body: %v", err)
+		}
+	}()
 
 	if resp.StatusCode != 200 {
 		log.Printf("Status code error: %d %s", resp.StatusCode, resp.Status)

@@ -51,7 +51,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error creating MongoDB repository: %v", err)
 	}
-	repo.DeleteExpiredAnalyses()
+	_ = repo.DeleteExpiredAnalyses()
 
 	fm := filemanager.NewFileManager()
 	telegramExtractor := telegram.NewTelegramExtractor()

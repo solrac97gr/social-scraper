@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"log"
 	"time"
 
 	"github.com/solrac97gr/telegram-followers-checker/config"
@@ -81,7 +82,11 @@ func (repo *MongoRepository) GetAllInfluencerAnalyses(page int, limit int) (AllI
 	if err != nil {
 		return AllInfluencerAnalysis{}, err
 	}
-	defer cursor.Close(ctx)
+	defer func() {
+		if err := cursor.Close(ctx); err != nil {
+			log.Printf("Failed to close cursor: %v", err)
+		}
+	}()
 
 	var analyses []*InfluencerAnalysis
 	for cursor.Next(ctx) {

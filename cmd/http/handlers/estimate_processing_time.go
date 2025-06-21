@@ -58,7 +58,9 @@ func (h *Handlers) EstimateTimeHandler(c *fiber.Ctx) error {
 	if err != nil {
 		// Clean up the temp file
 		if needsCleanup {
-			os.Remove(inputFile)
+			if err := os.Remove(inputFile); err != nil {
+				log.Printf("Failed to delete temp file %s: %v", inputFile, err)
+			}
 		}
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Failed to estimate processing time",

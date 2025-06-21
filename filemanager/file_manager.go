@@ -102,7 +102,11 @@ func (fm *FileManagerImpl) ReadLinksFromCSV(filePath string) []string {
 	if err != nil {
 		log.Fatalf("Failed to open CSV file: %v", err)
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			log.Printf("Failed to close CSV file: %v", err)
+		}
+	}()
 
 	reader := csv.NewReader(file)
 	records, err := reader.ReadAll()
@@ -159,9 +163,9 @@ func (fm *FileManagerImpl) SaveResultsToExcel(data [][]string, outputPath string
 	f := excelize.NewFile()
 
 	// Set column headers to be wider
-	f.SetColWidth("Sheet1", "A", "A", 30)
-	f.SetColWidth("Sheet1", "B", "B", 15)
-	f.SetColWidth("Sheet1", "C", "C", 40)
+	_ = f.SetColWidth("Sheet1", "A", "A", 30)
+	_ = f.SetColWidth("Sheet1", "B", "B", 15)
+	_ = f.SetColWidth("Sheet1", "C", "C", 40)
 
 	// Style for header
 	headerStyle, _ := f.NewStyle(&excelize.Style{
@@ -184,15 +188,15 @@ func (fm *FileManagerImpl) SaveResultsToExcel(data [][]string, outputPath string
 	for r, row := range data {
 		for c, cellValue := range row {
 			cellName, _ := excelize.CoordinatesToCellName(c+1, r+1)
-			f.SetCellValue("Sheet1", cellName, cellValue)
+			_ = f.SetCellValue("Sheet1", cellName, cellValue)
 		}
 
 		// Apply header style to first row
 		if r == 0 {
-			f.SetRowHeight("Sheet1", 1, 20)
+			_ = f.SetRowHeight("Sheet1", 1, 20)
 			for c := range row {
 				cellName, _ := excelize.CoordinatesToCellName(c+1, r+1)
-				f.SetCellStyle("Sheet1", cellName, cellName, headerStyle)
+				_ = f.SetCellStyle("Sheet1", cellName, cellName, headerStyle)
 			}
 		}
 	}
