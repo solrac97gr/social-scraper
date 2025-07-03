@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"os/exec"
+	"regexp"
 	"strings"
 
 	"github.com/solrac97gr/telegram-followers-checker/extractors/extractor"
@@ -33,8 +34,12 @@ func (ve *VKExtractor) CanHandle(link string) bool {
 
 // Extract extracts channel information from the given link
 func (ve *VKExtractor) Extract(link string) extractor.ChannelInfo {
+	// remove any subdomain from vk.com
+	re := regexp.MustCompile(`(https?:\/\/)?([^/]*\.)?vk\.com`)
+	modifiedLink := re.ReplaceAllString(link, `$1vk.com`)
+
 	// Run the Node.js script using Puppeteer
-	cmd := exec.Command("node", "scripts/puppeteer_scraper.js", link)
+	cmd := exec.Command("node", "scripts/puppeteer_scraper.js", modifiedLink)
 	output, err := cmd.Output()
 	if err != nil {
 		log.Printf("Error running Puppeteer script: %v", err)
