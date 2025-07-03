@@ -14,6 +14,15 @@ cli:
 	infracli run mongo
 	go run cmd/cli/main.go
 
+docker-run:
+	docker-compose up --build
+
+docker-stop:
+	docker-compose down
+
+docker-clean:
+	docker-compose down -v --rmi all
+
 clean:
 	rm -rf bin
 	rm -rf results
