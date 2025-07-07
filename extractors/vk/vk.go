@@ -34,9 +34,18 @@ func (ve *VKExtractor) CanHandle(link string) bool {
 
 // Extract extracts channel information from the given link
 func (ve *VKExtractor) Extract(link string) extractor.ChannelInfo {
-	// remove any subdomain from vk.com
-	re := regexp.MustCompile(`(https?:\/\/)?([^/]*\.)?vk\.com`)
-	modifiedLink := re.ReplaceAllString(link, `$1vk.com`)
+	// Ensure link starts with https://
+	if !strings.HasPrefix(link, "http") {
+		link = "https://" + link
+	} else if strings.HasPrefix(link, "http://") {
+		link = "https://" + link[len("http://"):]
+	}
+
+	// Remove any subdomain from vk.com
+	re := regexp.MustCompile(`https://[^/]*vk\.com`)
+	modifiedLink := re.ReplaceAllString(link, `https://vk.com`)
+
+	println("Modified VK link:", modifiedLink)
 
 	// Run the Node.js script using Puppeteer
 	cmd := exec.Command("node", "scripts/puppeteer_scraper.js", modifiedLink)

@@ -3,6 +3,7 @@ package filemanager
 import (
 	"encoding/csv"
 	"log"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -26,6 +27,37 @@ type FileManagerImpl struct{}
 // NewFileManager creates a new FileManager instance
 func NewFileManager() FileManager {
 	return &FileManagerImpl{}
+}
+
+// normalizeLink standardizes a URL to use https and a canonical domain.
+func normalizeLink(link string) string {
+	link = strings.TrimSpace(link)
+	if !strings.HasPrefix(link, "http://") && !strings.HasPrefix(link, "https://") {
+		link = "https://" + link
+	}
+
+	u, err := url.Parse(link)
+	if err != nil {
+		log.Printf("Warning: Could not parse link '%s'. Using it as is. Error: %v", link, err)
+		return link
+	}
+
+	u.Scheme = "https"
+
+	host := strings.ToLower(u.Host)
+	if strings.HasSuffix(host, "vk.com") {
+		u.Host = "vk.com"
+	} else if strings.HasSuffix(host, "instagram.com") {
+		u.Host = "instagram.com"
+	} else if strings.HasSuffix(host, "rutube.ru") {
+		u.Host = "rutube.ru"
+	} else if strings.HasSuffix(host, "telegram.me") {
+		u.Host = "t.me"
+	} else if strings.HasSuffix(host, "t.me") {
+		u.Host = "t.me"
+	}
+
+	return u.String()
 }
 
 // ReadLinksFromExcel reads links from an Excel file
@@ -59,7 +91,7 @@ func (fm *FileManagerImpl) ReadLinksFromExcel(filePath string) []string {
 	for _, row := range rows {
 		for _, cell := range row {
 			if strings.Contains(cell, "t.me/") || strings.Contains(cell, "telegram.me/") || strings.Contains(cell, "rutube.ru/") || strings.Contains(cell, "vk.com/") || strings.Contains(cell, "instagram.com/") {
-				links = append(links, strings.TrimSpace(cell))
+				links = append(links, normalizeLink(cell))
 			}
 		}
 	}
@@ -122,7 +154,7 @@ func (fm *FileManagerImpl) ReadLinksFromCSV(filePath string) []string {
 			if strings.Contains(cell, "t.me/") || strings.Contains(cell, "telegram.me/") ||
 				strings.Contains(cell, "rutube.ru/") || strings.Contains(cell, "vk.com/") ||
 				strings.Contains(cell, "instagram.com/") || strings.Contains(cell, "youtube.com/") {
-				links = append(links, strings.TrimSpace(cell))
+				links = append(links, normalizeLink(cell))
 			}
 		}
 	}
@@ -147,7 +179,7 @@ func (fm *FileManagerImpl) ReadLinksFromText(content string) []string {
 		if trimmed != "" && (strings.Contains(trimmed, "t.me/") || strings.Contains(trimmed, "telegram.me/") ||
 			strings.Contains(trimmed, "rutube.ru/") || strings.Contains(trimmed, "vk.com/") ||
 			strings.Contains(trimmed, "instagram.com/") || strings.Contains(trimmed, "youtube.com/")) {
-			links = append(links, trimmed)
+			links = append(links, normalizeLink(trimmed))
 		}
 	}
 
