@@ -11,6 +11,7 @@ var pendingChecks int32
 
 // CheckRegistrationStatus checks if the given link is registered on the specified website
 func CheckRegistrationStatus(link string, semaphore chan struct{}) bool {
+	println("Checking registration status for:", link)
 	atomic.AddInt32(&pendingChecks, 1)
 	log.Printf("Checking registration status for: %s (Pending checks: %d)", link, atomic.LoadInt32(&pendingChecks))
 	cmd := exec.Command("node", "scripts/ru-registration.js", link)
