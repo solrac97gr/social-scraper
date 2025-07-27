@@ -5,3 +5,7 @@ results/
 uploads/
 .env
 .idea/
+
+# Binary executables
+cli
+http-server
