@@ -1,0 +1,45 @@
+# Docker ignore file for social-scraper
+
+# Git
+.git
+.gitignore
+
+# Docker files
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Environment files
+.env
+.env.example
+.env.docker
+
+# Documentation
+*.md
+AUTHENTICATION_UPDATE.md
+GEMINI.md
+
+# Build artifacts
+cli
+http-server
+
+# Test files
+test*.csv
+test*.xlsx
+channels_followers.xlsx
+
+# Development files
+.DS_Store
+.idea/
+
+# Uploads and results (will be mounted as volumes)
+uploads/
+results/
+samples/
+
+# Node modules (will be installed in container)
+node_modules/
+
+# Temporary files
+*.tmp
+*.log

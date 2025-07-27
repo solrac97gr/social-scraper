@@ -18,9 +18,8 @@ type Config struct {
 
 func NewConfig() (*Config, error) {
 	var cfg Config
-	if err := godotenv.Load(); err != nil {
-		return nil, fmt.Errorf("error loading .env file: %w", err)
-	}
+	// Try to load .env file, but don't fail if it doesn't exist (for Docker)
+	_ = godotenv.Load()
 	if err := envconfig.Process("", &cfg); err != nil {
 		return nil, fmt.Errorf("error processing environment variables: %w", err)
 	}

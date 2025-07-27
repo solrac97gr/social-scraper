@@ -1,0 +1,24 @@
+{
+  "name": "social-scraper",
+  "version": "1.0.0",
+  "description": "Node.js scripts for social media scraping with Puppeteer",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "puppeteer",
+    "scraping",
+    "social-media",
+    "telegram",
+    "instagram",
+    "tiktok",
+    "vk",
+    "rutube"
+  ],
+  "author": "solrac97gr",
+  "license": "MIT",
+  "dependencies": {
+    "puppeteer": "^21.5.2"
+  }
+}
