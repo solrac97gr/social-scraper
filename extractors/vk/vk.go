@@ -48,7 +48,7 @@ func (ve *VKExtractor) Extract(link string) extractor.ChannelInfo {
 	println("Modified VK link:", modifiedLink)
 
 	// Run the Node.js script using Puppeteer
-	cmd := exec.Command("node", "scripts/puppeteer_scraper.js", modifiedLink)
+	cmd := exec.Command("node", "scripts/vk.js", modifiedLink)
 	output, err := cmd.Output()
 	if err != nil {
 		log.Printf("Error running Puppeteer script: %v", err)

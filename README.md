@@ -18,8 +18,8 @@ A tool to extract information from Telegram, Rutube, VK, and Instagram channels 
 2. Prepare your Excel file 📄:
    - Create an Excel file with links to Telegram, Rutube, VK, and Instagram channels (any format works as long as the links contain `t.me/`, `telegram.me/`, `rutube.ru/`, `vk.com/`, or `instagram.com/`).
 
-3. Update the Puppeteer script 📝:
-   - Replace the placeholders for Instagram username and password in `scripts/puppeteer_scraper.js` with your actual Instagram credentials.
+3. Update the scripts 📝:
+   - Replace the placeholders for Instagram username and password in `scripts/instagram.js` with your actual Instagram credentials.
 
 4. Run the CLI 💻:
    ```sh
