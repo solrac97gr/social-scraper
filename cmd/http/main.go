@@ -19,6 +19,7 @@ import (
 	"github.com/solrac97gr/telegram-followers-checker/extractors/instagram"
 	"github.com/solrac97gr/telegram-followers-checker/extractors/rutube"
 	"github.com/solrac97gr/telegram-followers-checker/extractors/telegram"
+	"github.com/solrac97gr/telegram-followers-checker/extractors/tiktok"
 	"github.com/solrac97gr/telegram-followers-checker/extractors/vk"
 	"github.com/solrac97gr/telegram-followers-checker/filemanager"
 )
@@ -58,8 +59,9 @@ func main() {
 	rutubeExtractor := rutube.NewRutubeExtractor()
 	vkExtractor := vk.NewVKExtractor()
 	instagramExtractor := instagram.NewInstagramExtractor()
+	tiktokExtractor := tiktok.NewTikTokExtractor()
 
-	influencersApp := app.NewInfluencerApp(repo, fm, telegramExtractor, rutubeExtractor, vkExtractor, instagramExtractor)
+	influencersApp := app.NewInfluencerApp(repo, fm, telegramExtractor, rutubeExtractor, vkExtractor, instagramExtractor, tiktokExtractor)
 
 	userRepo, err := database.NewUserMongoRepository(mongoClient, config)
 	if err != nil {

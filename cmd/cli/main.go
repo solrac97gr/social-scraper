@@ -12,6 +12,7 @@ import (
 	instagram "github.com/solrac97gr/telegram-followers-checker/extractors/instagram"
 	"github.com/solrac97gr/telegram-followers-checker/extractors/rutube"
 	"github.com/solrac97gr/telegram-followers-checker/extractors/telegram"
+	"github.com/solrac97gr/telegram-followers-checker/extractors/tiktok"
 	vk "github.com/solrac97gr/telegram-followers-checker/extractors/vk"
 	"github.com/solrac97gr/telegram-followers-checker/filemanager"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -51,9 +52,10 @@ func main() {
 	rutubeExtractor := rutube.NewRutubeExtractor()
 	vkExtractor := vk.NewVKExtractor()
 	instagramExtractor := instagram.NewInstagramExtractor()
+	tiktokExtractor := tiktok.NewTikTokExtractor()
 
 	// Initialize and run app
-	application := app.NewInfluencerApp(repo, fm, telegramExtractor, rutubeExtractor, vkExtractor, instagramExtractor)
+	application := app.NewInfluencerApp(repo, fm, telegramExtractor, rutubeExtractor, vkExtractor, instagramExtractor, tiktokExtractor)
 	application.Run("system", inputFile, outputFile)
 
 	log.Printf("Execution time: %v", time.Since(startAt))

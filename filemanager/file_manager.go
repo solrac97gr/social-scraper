@@ -55,6 +55,8 @@ func normalizeLink(link string) string {
 		u.Host = "t.me"
 	} else if strings.HasSuffix(host, "t.me") {
 		u.Host = "t.me"
+	} else if strings.HasSuffix(host, "tiktok.com") {
+		u.Host = "www.tiktok.com"
 	}
 
 	return u.String()
@@ -90,7 +92,7 @@ func (fm *FileManagerImpl) ReadLinksFromExcel(filePath string) []string {
 	// Extract links from rows
 	for _, row := range rows {
 		for _, cell := range row {
-			if strings.Contains(cell, "t.me/") || strings.Contains(cell, "telegram.me/") || strings.Contains(cell, "rutube.ru/") || strings.Contains(cell, "vk.com/") || strings.Contains(cell, "instagram.com/") {
+			if strings.Contains(cell, "t.me/") || strings.Contains(cell, "telegram.me/") || strings.Contains(cell, "rutube.ru/") || strings.Contains(cell, "vk.com/") || strings.Contains(cell, "instagram.com/") || strings.Contains(cell, "tiktok.com/") {
 				links = append(links, normalizeLink(cell))
 			}
 		}
@@ -153,7 +155,8 @@ func (fm *FileManagerImpl) ReadLinksFromCSV(filePath string) []string {
 		for _, cell := range record {
 			if strings.Contains(cell, "t.me/") || strings.Contains(cell, "telegram.me/") ||
 				strings.Contains(cell, "rutube.ru/") || strings.Contains(cell, "vk.com/") ||
-				strings.Contains(cell, "instagram.com/") || strings.Contains(cell, "youtube.com/") {
+				strings.Contains(cell, "instagram.com/") || strings.Contains(cell, "youtube.com/") ||
+				strings.Contains(cell, "tiktok.com/") {
 				links = append(links, normalizeLink(cell))
 			}
 		}
@@ -178,7 +181,8 @@ func (fm *FileManagerImpl) ReadLinksFromText(content string) []string {
 		trimmed := strings.TrimSpace(link)
 		if trimmed != "" && (strings.Contains(trimmed, "t.me/") || strings.Contains(trimmed, "telegram.me/") ||
 			strings.Contains(trimmed, "rutube.ru/") || strings.Contains(trimmed, "vk.com/") ||
-			strings.Contains(trimmed, "instagram.com/") || strings.Contains(trimmed, "youtube.com/")) {
+			strings.Contains(trimmed, "instagram.com/") || strings.Contains(trimmed, "youtube.com/") ||
+			strings.Contains(trimmed, "tiktok.com/")) {
 			links = append(links, normalizeLink(trimmed))
 		}
 	}
