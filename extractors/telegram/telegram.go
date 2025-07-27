@@ -1,13 +1,11 @@
 package telegram
 
 import (
+	"encoding/json"
 	"log"
-	"net/http"
-	"regexp"
+	"os/exec"
 	"strings"
-	"time"
 
-	"github.com/PuerkitoBio/goquery"
 	"github.com/solrac97gr/telegram-followers-checker/extractors/extractor"
 )
 
@@ -33,36 +31,18 @@ func (te *TelegramExtractor) CanHandle(link string) bool {
 	return strings.Contains(link, "t.me/") || strings.Contains(link, "telegram.me/")
 }
 
-// Extract extracts channel information from the given link
+// Extract extracts channel information from the given link using Puppeteer script
 func (te *TelegramExtractor) Extract(link string) extractor.ChannelInfo {
 	// Format the link to ensure it's accessible via http
 	if !strings.HasPrefix(link, "http") {
 		link = "https://" + link
 	}
 
-	// Create HTTP client with timeout
-	client := &http.Client{
-		Timeout: 30 * time.Second,
-	}
-
-	// Make request
-	resp, err := client.Get(link)
+	// Execute the Telegram Puppeteer script
+	cmd := exec.Command("node", "scripts/telegram.js", link)
+	output, err := cmd.Output()
 	if err != nil {
-		log.Printf("Error fetching %s: %v", link, err)
-		return extractor.ChannelInfo{
-			ChannelName:    "Error",
-			FollowersCount: "N/A",
-			OriginalLink:   link,
-		}
-	}
-	defer func() {
-		if err := resp.Body.Close(); err != nil {
-			log.Printf("Failed to close response body: %v", err)
-		}
-	}()
-
-	if resp.StatusCode != 200 {
-		log.Printf("Status code error: %d %s", resp.StatusCode, resp.Status)
+		log.Printf("Error executing Telegram script for %s: %v", link, err)
 		return extractor.ChannelInfo{
 			ChannelName:    "Error",
 			FollowersCount: "N/A",
@@ -70,40 +50,24 @@ func (te *TelegramExtractor) Extract(link string) extractor.ChannelInfo {
 		}
 	}
 
-	// Parse HTML
-	doc, err := goquery.NewDocumentFromReader(resp.Body)
-	if err != nil {
-		log.Printf("Error parsing HTML: %v", err)
+	// Parse the JSON response from the script
+	var result struct {
+		ChannelName    string `json:"channelName"`
+		FollowersCount string `json:"followersCount"`
+	}
+
+	if err := json.Unmarshal(output, &result); err != nil {
+		log.Printf("Error parsing Telegram script output for %s: %v", link, err)
 		return extractor.ChannelInfo{
 			ChannelName:    "Error",
 			FollowersCount: "N/A",
 			OriginalLink:   link,
 		}
 	}
-
-	// Extract channel name
-	channelName := "Unknown"
-	doc.Find("div.tgme_page_title").Each(func(i int, s *goquery.Selection) {
-		channelName = strings.TrimSpace(s.Text())
-	})
-
-	// Extract followers count
-	followersText := "0"
-	doc.Find("div.tgme_page_extra").Each(func(i int, s *goquery.Selection) {
-		text := s.Text()
-		if strings.Contains(text, "subscriber") || strings.Contains(text, "member") || strings.Contains(text, "follower") {
-			re := regexp.MustCompile(`[\d\s]+`)
-			matches := re.FindString(text)
-			if matches != "" {
-				// Remove spaces and convert to number
-				followersText = strings.ReplaceAll(matches, " ", "")
-			}
-		}
-	})
 
 	return extractor.ChannelInfo{
-		ChannelName:    channelName,
-		FollowersCount: followersText,
+		ChannelName:    result.ChannelName,
+		FollowersCount: result.FollowersCount,
 		OriginalLink:   link,
 	}
 }

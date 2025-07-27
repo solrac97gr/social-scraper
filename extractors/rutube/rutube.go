@@ -1,13 +1,11 @@
 package rutube
 
 import (
+	"encoding/json"
 	"log"
-	"net/http"
-	"regexp"
+	"os/exec"
 	"strings"
-	"time"
 
-	"github.com/PuerkitoBio/goquery"
 	"github.com/solrac97gr/telegram-followers-checker/extractors/extractor"
 )
 
@@ -34,36 +32,18 @@ func (re *RutubeExtractor) CanHandle(link string) bool {
 	return canHandle
 }
 
-// Extract extracts channel information from the given link
+// Extract extracts channel information from the given link using Puppeteer script
 func (re *RutubeExtractor) Extract(link string) extractor.ChannelInfo {
 	// Format the link to ensure it's accessible via http
 	if !strings.HasPrefix(link, "http") {
 		link = "https://" + link
 	}
 
-	// Create HTTP client with timeout
-	client := &http.Client{
-		Timeout: 30 * time.Second,
-	}
-
-	// Make request
-	resp, err := client.Get(link)
+	// Execute the Rutube Puppeteer script
+	cmd := exec.Command("node", "scripts/rutube.js", link)
+	output, err := cmd.Output()
 	if err != nil {
-		log.Printf("Error fetching %s: %v", link, err)
-		return extractor.ChannelInfo{
-			ChannelName:    "Error",
-			FollowersCount: "N/A",
-			OriginalLink:   link,
-		}
-	}
-	defer func() {
-		if err := resp.Body.Close(); err != nil {
-			log.Printf("Failed to close response body: %v", err)
-		}
-	}()
-
-	if resp.StatusCode != 200 {
-		log.Printf("Status code error: %d %s", resp.StatusCode, resp.Status)
+		log.Printf("Error executing Rutube script for %s: %v", link, err)
 		return extractor.ChannelInfo{
 			ChannelName:    "Error",
 			FollowersCount: "N/A",
@@ -71,30 +51,14 @@ func (re *RutubeExtractor) Extract(link string) extractor.ChannelInfo {
 		}
 	}
 
-	// Parse HTML
-	doc, err := goquery.NewDocumentFromReader(resp.Body)
-	if err != nil {
-		log.Printf("Error parsing HTML: %v", err)
-		return extractor.ChannelInfo{
-			ChannelName:    "Error",
-			FollowersCount: "N/A",
-			OriginalLink:   link,
-		}
+	// Parse the JSON response from the script
+	var result struct {
+		ChannelName    string `json:"channelName"`
+		FollowersCount string `json:"followersCount"`
 	}
 
-	// Extract channel name
-	channelName := doc.Find("h1.wdp-feed-banner-module__wdp-feed-banner__title-text").AttrOr("title", "")
-	channelName = strings.TrimSpace(channelName)
-
-	// Extract followers count
-	followersText := doc.Find(".wdp-feed-banner-module__wdp-feed-banner__title p").Text()
-	followersText = strings.TrimSpace(followersText)
-
-	// Clean up the followers string to remove non-digit characters
-	regex := regexp.MustCompile(`\D`)
-	followersText = regex.ReplaceAllString(followersText, "")
-
-	if channelName == "" || followersText == "" {
+	if err := json.Unmarshal(output, &result); err != nil {
+		log.Printf("Error parsing Rutube script output for %s: %v", link, err)
 		return extractor.ChannelInfo{
 			ChannelName:    "Error",
 			FollowersCount: "N/A",
@@ -103,8 +67,8 @@ func (re *RutubeExtractor) Extract(link string) extractor.ChannelInfo {
 	}
 
 	return extractor.ChannelInfo{
-		ChannelName:    channelName,
-		FollowersCount: followersText,
+		ChannelName:    result.ChannelName,
+		FollowersCount: result.FollowersCount,
 		OriginalLink:   link,
 	}
 }

@@ -1,4 +1,5 @@
 *.xlsx
+*.csv
 .DS_Store
 samples/
 results/
