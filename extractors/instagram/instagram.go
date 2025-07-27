@@ -42,7 +42,7 @@ func (ie *InstagramExtractor) Extract(link string) extractor.ChannelInfo {
 	// Run the Node.js script using Puppeteer
 	cmd := exec.Command(
 		"node",
-		"scripts/puppeteer_scraper.js",
+		"scripts/instagram.js",
 		link,
 		os.Getenv(InstagramUsernameEnv),
 		os.Getenv(InstagramPasswordEnv),
