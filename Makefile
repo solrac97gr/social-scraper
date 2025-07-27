@@ -14,6 +14,11 @@ cli:
 	infracli run mongo
 	go run cmd/cli/main.go
 
+docker:
+	@echo "🐋 Launching Social Scraper with Docker..."
+	@chmod +x docker-start.sh
+	@./docker-start.sh
+
 clean:
 	rm -rf bin
 	rm -rf results

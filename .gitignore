@@ -10,3 +10,8 @@ uploads/
 # Binary executables
 cli
 http-server
+
+# Docker
+.env.docker
+node_modules/
+*.log
