@@ -84,6 +84,9 @@ func main() {
 	// Serve static files from the root directory
 	fiberApp.Static("/", "./public")
 
+	// Public health check endpoint (no authentication required)
+	fiberApp.Get("/health", hdl.HealthCheckHandler)
+
 	// Add route for dashboard protection
 	fiberApp.Get("/dashboard.html", func(c *fiber.Ctx) error {
 		return c.SendFile("./public/dashboard.html")
