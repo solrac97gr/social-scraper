@@ -76,8 +76,8 @@ async function scrapeTikTok(url) {
             
             try {
                 result = await page.evaluate(() => {
-                    // Channel name selector
-                    const channelNameElement = document.querySelector('#main-content-others_homepage > div > div.e1457k4r14.css-cooqqt-DivShareLayoutHeader-StyledDivShareLayoutHeaderV2-CreatorPageHeader.e13xij562 > div.css-1o9t6sm-DivShareTitleContainer-CreatorPageHeaderShareContainer.e1457k4r15 > div.css-dozy74-DivUserIdentifierWrapper.e1gnmlil1 > div > h2');
+                    // Channel name selector (updated)
+                    const channelNameElement = document.querySelector('#main-content-others_homepage > div > div.e1457k4r14.css-cooqqt-DivShareLayoutHeader-StyledDivShareLayoutHeaderV2-CreatorPageHeader.e13xij562 > div.css-1o9t6sm-DivShareTitleContainer-CreatorPageHeaderShareContainer.e1457k4r15 > div.css-dozy74-DivUserIdentifierWrapper.e1gnmlil1 > div > div > h1');
                     
                     // Followers count selector
                     const followersElement = document.querySelector('#main-content-others_homepage > div > div.e1457k4r14.css-cooqqt-DivShareLayoutHeader-StyledDivShareLayoutHeaderV2-CreatorPageHeader.e13xij562 > div.css-1o9t6sm-DivShareTitleContainer-CreatorPageHeaderShareContainer.e1457k4r15 > div.css-1ygxkc0-CreatorPageHeaderTextContainer.e1457k4r16 > h3 > div:nth-child(2) > strong');
